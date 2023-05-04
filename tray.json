@@ -1,15 +1,15 @@
 {
-  "type": "qvantum-q65llb3",
-  "name": "simrishamn",
+  "type": "blinky-modbus-tray-example",
+  "name": "01",
   "arcPeriod": 60000,
   "timeStamp": 1680024253068,
   "watchdog": {
     "action": "reading",
     "type": "scalar",
-    "value": 27551,
+    "value": 0,
     "unit": "",
     "alarm": {
-      "value": 0,
+      "value": 1,
       "limits": {
         "lolo": -1,
         "low": 0,
@@ -23,1629 +23,161 @@
       }
     }
   },
-  "opState": {
-    "action": "setting",
-    "type": "scalar",
-    "value": "0",
-    "unit": "",
-    "alarm": {
-      "value": 0,
-      "limits": {
-        "lolo": -1,
-        "low": -1,
-        "high": 3,
-        "hihi": 3
-      },
-      "notify": {
-        "name": "",
-        "number": "",
-        "time": 0
-      }
-    }
-  },
-  "startScheduleTime": {
-    "action": "setting",
-    "type": "scalar",
-    "value": 7,
-    "unit": "hr",
-    "alarm": {
-      "value": 0,
-      "limits": {
-        "lolo": -1,
-        "low": -1,
-        "high": 24,
-        "hihi": 24
-      },
-      "notify": {
-        "name": "",
-        "number": "",
-        "time": 0
-      }
-    }
-  },
-  "stopScheduleTime": {
-    "action": "setting",
-    "type": "scalar",
-    "value": 17,
-    "unit": "hr",
-    "alarm": {
-      "value": 0,
-      "limits": {
-        "lolo": -1,
-        "low": -1,
-        "high": 24,
-        "hihi": 24
-      },
-      "notify": {
-        "name": "",
-        "number": "",
-        "time": 0
-      }
-    }
-  },
-  "maxRate": {
-    "action": "setting",
-    "type": "scalar",
-    "value": 1.95,
-    "unit": "SEK/kW-hr",
-    "alarm": {
-      "value": 0,
-      "limits": {
-        "lolo": 0,
-        "low": 0,
-        "high": 2,
-        "hihi": 3
-      },
-      "notify": {
-        "name": "",
-        "number": "",
-        "time": 0
-      }
-    }
-  },
   "alias": {
     "action": "setting",
     "type": "string",
-    "value": "Autoseum"
+    "value": "example"
   },
-  "lowPressure": {
+  "cube01": {
     "action": "reading",
     "type": "scalar",
-    "value": 5,
-    "unit": "bar",
-    "alarm": {
-      "value": 2,
-      "limits": {
-        "lolo": 1,
-        "low": 1,
-        "high": 5,
-        "hihi": 7
-      },
-      "notify": {
-        "name": "",
-        "number": "",
-        "time": 0
-      }
-    }
-  },
-  "suctionGas": {
-    "action": "reading",
-    "type": "scalar",
-    "value": 7.4,
-    "unit": "C",
+    "value": 1,
+    "unit": "unit",
     "alarm": {
       "value": 0,
       "limits": {
-        "lolo": -11,
-        "low": -6,
-        "high": 15,
-        "hihi": 20
+        "lolo": -1,
+        "low": 0,
+        "high": 10,
+        "hihi": 11
       },
       "notify": {
         "name": "",
         "number": "",
         "time": 0
       }
+    },
+    "modbus": {
+      "type": "holding",
+      "address": 21,
+      "signed": true,
+      "res": 1
     }
   },
-  "evapTemp": {
-    "action": "reading",
+  "cube02": {
+    "action": "setting",
     "type": "scalar",
-    "value": 7.8,
-    "unit": "C",
-    "alarm": {
-      "value": 2,
-      "limits": {
-        "lolo": -15,
-        "low": -10,
-        "high": 5,
-        "hihi": 10
-      },
-      "notify": {
-        "name": "",
-        "number": "",
-        "time": 0
-      }
-    }
-  },
-  "defrostTank": {
-    "action": "reading",
-    "type": "scalar",
-    "value": 12.3,
-    "unit": "C",
+    "value": -2,
+    "unit": "unit",
     "alarm": {
       "value": 3,
       "limits": {
-        "lolo": 38,
-        "low": 43,
-        "high": 53,
-        "hihi": 58
+        "lolo": -1,
+        "low": 0,
+        "high": 10,
+        "hihi": 11
       },
       "notify": {
         "name": "",
         "number": "",
         "time": 0
       }
+    },
+    "modbus": {
+      "type": "holding",
+      "address": 22,
+      "signed": true,
+      "res": 1
     }
   },
-  "coolIn": {
+  "cube03": {
     "action": "reading",
     "type": "scalar",
-    "value": 10,
-    "unit": "C",
-    "alarm": {
-      "value": 4,
-      "limits": {
-        "lolo": -5,
-        "low": -2,
-        "high": 2,
-        "hihi": 5
-      },
-      "notify": {
-        "name": "",
-        "number": "",
-        "time": 0
-      }
-    }
-  },
-  "coolOut": {
-    "action": "reading",
-    "type": "scalar",
-    "value": 7.3,
-    "unit": "C",
+    "value": 3,
+    "unit": "unit",
     "alarm": {
       "value": 0,
       "limits": {
-        "lolo": -10,
-        "low": -5,
+        "lolo": -1,
+        "low": 0,
         "high": 10,
-        "hihi": 15
+        "hihi": 11
       },
       "notify": {
         "name": "",
         "number": "",
         "time": 0
       }
+    },
+    "modbus": {
+      "type": "holding",
+      "address": 23,
+      "signed": true,
+      "res": 1
     }
   },
-  "heatIn": {
-    "action": "reading",
+  "cube04": {
+    "action": "setting",
     "type": "scalar",
-    "value": 25.5,
-    "unit": "C",
+    "value": -4,
+    "unit": "unit",
     "alarm": {
       "value": 3,
       "limits": {
-        "lolo": 36,
-        "low": 41,
-        "high": 51,
-        "hihi": 56
-      },
-      "notify": {
-        "name": "",
-        "number": "",
-        "time": 0
-      }
-    }
-  },
-  "heatOut": {
-    "action": "reading",
-    "type": "scalar",
-    "value": 33.3,
-    "unit": "C",
-    "alarm": {
-      "value": 3,
-      "limits": {
-        "lolo": 40,
-        "low": 45,
-        "high": 62,
-        "hihi": 67
-      },
-      "notify": {
-        "name": "",
-        "number": "",
-        "time": 0
-      }
-    }
-  },
-  "hotGas": {
-    "action": "reading",
-    "type": "scalar",
-    "value": 60.6,
-    "unit": "C",
-    "alarm": {
-      "value": 0,
-      "limits": {
-        "lolo": 40,
-        "low": 50,
-        "high": 110,
-        "hihi": 115
-      },
-      "notify": {
-        "name": "",
-        "number": "",
-        "time": 0
-      }
-    }
-  },
-  "radiatorFeed": {
-    "action": "reading",
-    "type": "scalar",
-    "value": 36.1,
-    "unit": "C",
-    "alarm": {
-      "value": 0,
-      "limits": {
-        "lolo": 22,
-        "low": 27,
-        "high": 50,
-        "hihi": 55
-      },
-      "notify": {
-        "name": "",
-        "number": "",
-        "time": 0
-      }
-    }
-  },
-  "hotWater": {
-    "action": "reading",
-    "type": "scalar",
-    "value": -39.1,
-    "unit": "C",
-    "alarm": {
-      "value": 0,
-      "limits": {
-        "lolo": -60,
-        "low": -60,
-        "high": 100,
-        "hihi": 100
-      },
-      "notify": {
-        "name": "",
-        "number": "",
-        "time": 0
-      }
-    }
-  },
-  "outdoorTemp": {
-    "action": "reading",
-    "type": "scalar",
-    "value": 2.9,
-    "unit": "C",
-    "alarm": {
-      "value": 0,
-      "limits": {
-        "lolo": -20,
-        "low": -15,
-        "high": 30,
-        "hihi": 35
-      },
-      "notify": {
-        "name": "",
-        "number": "",
-        "time": 0
-      }
-    }
-  },
-  "radiatorReturn": {
-    "action": "reading",
-    "type": "scalar",
-    "value": 27.3,
-    "unit": "C",
-    "alarm": {
-      "value": 0,
-      "limits": {
-        "lolo": 15,
-        "low": 20,
-        "high": 30,
-        "hihi": 35
-      },
-      "notify": {
-        "name": "",
-        "number": "",
-        "time": 0
-      }
-    }
-  },
-  "curveSetPoint": {
-    "action": "reading",
-    "type": "scalar",
-    "value": 39.1,
-    "unit": "",
-    "alarm": {
-      "value": 0,
-      "limits": {
-        "lolo": 17,
-        "low": 18,
-        "high": 46,
-        "hihi": 50
-      },
-      "notify": {
-        "name": "",
-        "number": "",
-        "time": 0
-      }
-    }
-  },
-  "heatBalance": {
-    "action": "reading",
-    "type": "scalar",
-    "value": 700,
-    "unit": "",
-    "alarm": {
-      "value": 2,
-      "limits": {
-        "lolo": -26,
-        "low": -25,
-        "high": 600,
-        "hihi": 701
-      },
-      "notify": {
-        "name": "",
-        "number": "",
-        "time": 0
-      }
-    }
-  },
-  "aAlarm": {
-    "action": "reading",
-    "type": "scalar",
-    "value": 0,
-    "unit": "",
-    "alarm": {
-      "value": 0,
-      "limits": {
-        "lolo": -2,
-        "low": -1,
-        "high": 1,
-        "hihi": 2
-      },
-      "notify": {
-        "name": "",
-        "number": "",
-        "time": 0
-      }
-    }
-  },
-  "lowPressGas": {
-    "action": "reading",
-    "type": "scalar",
-    "value": 0,
-    "unit": "",
-    "alarm": {
-      "value": 0,
-      "limits": {
-        "lolo": -2,
-        "low": -1,
-        "high": 1,
-        "hihi": 2
-      },
-      "notify": {
-        "name": "",
-        "number": "",
-        "time": 0
-      }
-    }
-  },
-  "highPressGas": {
-    "action": "reading",
-    "type": "scalar",
-    "value": 0,
-    "unit": "",
-    "alarm": {
-      "value": 0,
-      "limits": {
-        "lolo": -2,
-        "low": -1,
-        "high": 1,
-        "hihi": 2
-      },
-      "notify": {
-        "name": "",
-        "number": "",
-        "time": 0
-      }
-    }
-  },
-  "fpCoolIn": {
-    "action": "reading",
-    "type": "scalar",
-    "value": 0,
-    "unit": "",
-    "alarm": {
-      "value": 0,
-      "limits": {
-        "lolo": -2,
-        "low": -1,
-        "high": 1,
-        "hihi": 2
-      },
-      "notify": {
-        "name": "",
-        "number": "",
-        "time": 0
-      }
-    }
-  },
-  "heatCarryReturnIn": {
-    "action": "reading",
-    "type": "scalar",
-    "value": 0,
-    "unit": "",
-    "alarm": {
-      "value": 0,
-      "limits": {
-        "lolo": -2,
-        "low": -1,
-        "high": 1,
-        "hihi": 2
-      },
-      "notify": {
-        "name": "",
-        "number": "",
-        "time": 0
-      }
-    }
-  },
-  "hotGasHi": {
-    "action": "reading",
-    "type": "scalar",
-    "value": 0,
-    "unit": "",
-    "alarm": {
-      "value": 0,
-      "limits": {
-        "lolo": -2,
-        "low": -1,
-        "high": 1,
-        "hihi": 2
-      },
-      "notify": {
-        "name": "",
-        "number": "",
-        "time": 0
-      }
-    }
-  },
-  "engineProtect": {
-    "action": "reading",
-    "type": "scalar",
-    "value": 0,
-    "unit": "",
-    "alarm": {
-      "value": 0,
-      "limits": {
-        "lolo": -2,
-        "low": -1,
-        "high": 1,
-        "hihi": 2
-      },
-      "notify": {
-        "name": "",
-        "number": "",
-        "time": 0
-      }
-    }
-  },
-  "afans": {
-    "action": "reading",
-    "type": "scalar",
-    "value": 0,
-    "unit": "",
-    "alarm": {
-      "value": 0,
-      "limits": {
-        "lolo": -2,
-        "low": -1,
-        "high": 1,
-        "hihi": 2
-      },
-      "notify": {
-        "name": "",
-        "number": "",
-        "time": 0
-      }
-    }
-  },
-  "masterComm": {
-    "action": "reading",
-    "type": "scalar",
-    "value": 0,
-    "unit": "",
-    "alarm": {
-      "value": 0,
-      "limits": {
-        "lolo": -2,
-        "low": -1,
-        "high": 1,
-        "hihi": 2
-      },
-      "notify": {
-        "name": "",
-        "number": "",
-        "time": 0
-      }
-    }
-  },
-  "masterKBP": {
-    "action": "reading",
-    "type": "scalar",
-    "value": 0,
-    "unit": "",
-    "alarm": {
-      "value": 0,
-      "limits": {
-        "lolo": -2,
-        "low": -1,
-        "high": 1,
-        "hihi": 2
-      },
-      "notify": {
-        "name": "",
-        "number": "",
-        "time": 0
-      }
-    }
-  },
-  "bAlarm": {
-    "action": "reading",
-    "type": "scalar",
-    "value": 0,
-    "unit": "",
-    "alarm": {
-      "value": 0,
-      "limits": {
-        "lolo": -2,
-        "low": -1,
-        "high": 1,
-        "hihi": 2
-      },
-      "notify": {
-        "name": "",
-        "number": "",
-        "time": 0
-      }
-    }
-  },
-  "hiReturn": {
-    "action": "reading",
-    "type": "scalar",
-    "value": 0,
-    "unit": "",
-    "alarm": {
-      "value": 0,
-      "limits": {
-        "lolo": -2,
-        "low": -1,
-        "high": 1,
-        "hihi": 2
-      },
-      "notify": {
-        "name": "",
-        "number": "",
-        "time": 0
-      }
-    }
-  },
-  "hiHotGas": {
-    "action": "reading",
-    "type": "scalar",
-    "value": 0,
-    "unit": "",
-    "alarm": {
-      "value": 0,
-      "limits": {
-        "lolo": -2,
-        "low": -1,
-        "high": 1,
-        "hihi": 2
-      },
-      "notify": {
-        "name": "",
-        "number": "",
-        "time": 0
-      }
-    }
-  },
-  "evapFan1": {
-    "action": "reading",
-    "type": "scalar",
-    "value": 0,
-    "unit": "",
-    "alarm": {
-      "value": 0,
-      "limits": {
-        "lolo": -2,
-        "low": -1,
-        "high": 1,
-        "hihi": 2
-      },
-      "notify": {
-        "name": "",
-        "number": "",
-        "time": 0
-      }
-    }
-  },
-  "evapFan2": {
-    "action": "reading",
-    "type": "scalar",
-    "value": 0,
-    "unit": "",
-    "alarm": {
-      "value": 0,
-      "limits": {
-        "lolo": -2,
-        "low": -1,
-        "high": 1,
-        "hihi": 2
-      },
-      "notify": {
-        "name": "",
-        "number": "",
-        "time": 0
-      }
-    }
-  },
-  "lowOutTempStop": {
-    "action": "reading",
-    "type": "scalar",
-    "value": 0,
-    "unit": "",
-    "alarm": {
-      "value": 0,
-      "limits": {
-        "lolo": -2,
-        "low": -1,
-        "high": 1,
-        "hihi": 2
-      },
-      "notify": {
-        "name": "",
-        "number": "",
-        "time": 0
-      }
-    }
-  },
-  "battery": {
-    "action": "reading",
-    "type": "scalar",
-    "value": 0,
-    "unit": "",
-    "alarm": {
-      "value": 0,
-      "limits": {
-        "lolo": -2,
-        "low": -1,
-        "high": 1,
-        "hihi": 2
-      },
-      "notify": {
-        "name": "",
-        "number": "",
-        "time": 0
-      }
-    }
-  },
-  "aftCartridgeFuse": {
-    "action": "reading",
-    "type": "scalar",
-    "value": 0,
-    "unit": "",
-    "alarm": {
-      "value": 0,
-      "limits": {
-        "lolo": -2,
-        "low": -1,
-        "high": 1,
-        "hihi": 2
-      },
-      "notify": {
-        "name": "",
-        "number": "",
-        "time": 0
-      }
-    }
-  },
-  "extPumpFuse": {
-    "action": "reading",
-    "type": "scalar",
-    "value": 0,
-    "unit": "",
-    "alarm": {
-      "value": 0,
-      "limits": {
-        "lolo": -2,
-        "low": -1,
-        "high": 1,
-        "hihi": 2
-      },
-      "notify": {
-        "name": "",
-        "number": "",
-        "time": 0
-      }
-    }
-  },
-  "extAlarmB1": {
-    "action": "reading",
-    "type": "scalar",
-    "value": 0,
-    "unit": "",
-    "alarm": {
-      "value": 0,
-      "limits": {
-        "lolo": -2,
-        "low": -1,
-        "high": 1,
-        "hihi": 2
-      },
-      "notify": {
-        "name": "",
-        "number": "",
-        "time": 0
-      }
-    }
-  },
-  "extAlarmB2": {
-    "action": "reading",
-    "type": "scalar",
-    "value": 0,
-    "unit": "",
-    "alarm": {
-      "value": 0,
-      "limits": {
-        "lolo": -2,
-        "low": -1,
-        "high": 1,
-        "hihi": 2
-      },
-      "notify": {
-        "name": "",
-        "number": "",
-        "time": 0
-      }
-    }
-  },
-  "opStatus": {
-    "action": "reading",
-    "type": "scalar",
-    "value": 107,
-    "unit": "",
-    "alarm": {
-      "value": 4,
-      "limits": {
-        "lolo": -2,
-        "low": -1,
-        "high": 1,
-        "hihi": 2
-      },
-      "notify": {
-        "name": "",
-        "number": "",
-        "time": 0
-      }
-    }
-  },
-  "compressor": {
-    "action": "reading",
-    "type": "scalar",
-    "value": 1,
-    "unit": "",
-    "alarm": {
-      "value": 0,
-      "limits": {
-        "lolo": -2,
-        "low": -1,
-        "high": 2,
-        "hihi": 3
-      },
-      "notify": {
-        "name": "",
-        "number": "",
-        "time": 0
-      }
-    }
-  },
-  "coolantPump": {
-    "action": "reading",
-    "type": "scalar",
-    "value": 1,
-    "unit": "",
-    "alarm": {
-      "value": 0,
-      "limits": {
-        "lolo": -2,
-        "low": -1,
-        "high": 2,
-        "hihi": 3
-      },
-      "notify": {
-        "name": "",
-        "number": "",
-        "time": 0
-      }
-    }
-  },
-  "defrostActive": {
-    "action": "reading",
-    "type": "scalar",
-    "value": 0,
-    "unit": "",
-    "alarm": {
-      "value": 0,
-      "limits": {
-        "lolo": -2,
-        "low": -1,
-        "high": 2,
-        "hihi": 3
-      },
-      "notify": {
-        "name": "",
-        "number": "",
-        "time": 0
-      }
-    }
-  },
-  "heatCarrierPump": {
-    "action": "reading",
-    "type": "scalar",
-    "value": 1,
-    "unit": "",
-    "alarm": {
-      "value": 0,
-      "limits": {
-        "lolo": -2,
-        "low": -1,
-        "high": 2,
-        "hihi": 3
-      },
-      "notify": {
-        "name": "",
-        "number": "",
-        "time": 0
-      }
-    }
-  },
-  "hotWaterDiverter": {
-    "action": "reading",
-    "type": "scalar",
-    "value": 0,
-    "unit": "",
-    "alarm": {
-      "value": 0,
-      "limits": {
-        "lolo": -2,
-        "low": -1,
-        "high": 2,
-        "hihi": 3
-      },
-      "notify": {
-        "name": "",
-        "number": "",
-        "time": 0
-      }
-    }
-  },
-  "addHeat": {
-    "action": "reading",
-    "type": "scalar",
-    "value": 1,
-    "unit": "",
-    "alarm": {
-      "value": 0,
-      "limits": {
-        "lolo": -2,
-        "low": -1,
-        "high": 2,
-        "hihi": 3
-      },
-      "notify": {
-        "name": "",
-        "number": "",
-        "time": 0
-      }
-    }
-  },
-  "radiatorPump": {
-    "action": "reading",
-    "type": "scalar",
-    "value": 1,
-    "unit": "",
-    "alarm": {
-      "value": 0,
-      "limits": {
-        "lolo": -2,
-        "low": -1,
-        "high": 2,
-        "hihi": 3
-      },
-      "notify": {
-        "name": "",
-        "number": "",
-        "time": 0
-      }
-    }
-  },
-  "afterTankSG": {
-    "action": "reading",
-    "type": "scalar",
-    "value": 9.99,
-    "unit": "",
-    "alarm": {
-      "value": 0,
-      "limits": {
-        "lolo": 0,
-        "low": 0,
-        "high": 10.1,
-        "hihi": 10.1
-      },
-      "notify": {
-        "name": "",
-        "number": "",
-        "time": 0
-      }
-    }
-  },
-  "evapFan": {
-    "action": "reading",
-    "type": "scalar",
-    "value": 3.65,
-    "unit": "",
-    "alarm": {
-      "value": 0,
-      "limits": {
         "lolo": -1,
-        "low": -1,
-        "high": 10.1,
-        "hihi": 10.1
-      },
-      "notify": {
-        "name": "",
-        "number": "",
-        "time": 0
-      }
-    }
-  },
-  "condenserValve": {
-    "action": "reading",
-    "type": "scalar",
-    "value": 0,
-    "unit": "",
-    "alarm": {
-      "value": 0,
-      "limits": {
-        "lolo": -2,
-        "low": -1,
-        "high": 1,
-        "hihi": 2
-      },
-      "notify": {
-        "name": "",
-        "number": "",
-        "time": 0
-      }
-    }
-  },
-  "addHeatSG": {
-    "action": "reading",
-    "type": "scalar",
-    "value": 1.38,
-    "unit": "",
-    "alarm": {
-      "value": 0,
-      "limits": {
-        "lolo": -1,
-        "low": -1,
-        "high": 10.1,
-        "hihi": 10.1
-      },
-      "notify": {
-        "name": "",
-        "number": "",
-        "time": 0
-      }
-    }
-  },
-  "startLevelCompressor": {
-    "action": "setting",
-    "type": "scalar",
-    "value": 60,
-    "unit": "Kmin",
-    "alarm": {
-      "value": 0,
-      "limits": {
-        "lolo": 50,
-        "low": 55,
-        "high": 65,
-        "hihi": 75
-      },
-      "notify": {
-        "name": "",
-        "number": "",
-        "time": 0
-      }
-    }
-  },
-  "stopLevelCompressor": {
-    "action": "setting",
-    "type": "scalar",
-    "value": 0,
-    "unit": "Kmin",
-    "alarm": {
-      "value": 0,
-      "limits": {
-        "lolo": -1,
-        "low": -1,
-        "high": 10,
-        "hihi": 10
-      },
-      "notify": {
-        "name": "",
-        "number": "",
-        "time": 0
-      }
-    }
-  },
-  "analogComp0": {
-    "action": "setting",
-    "type": "scalar",
-    "value": 100,
-    "unit": "Kmin",
-    "alarm": {
-      "value": 0,
-      "limits": {
-        "lolo": 90,
-        "low": 95,
-        "high": 105,
-        "hihi": 110
-      },
-      "notify": {
-        "name": "",
-        "number": "",
-        "time": 0
-      }
-    }
-  },
-  "analogComp100": {
-    "action": "setting",
-    "type": "scalar",
-    "value": 200,
-    "unit": "Kmin",
-    "alarm": {
-      "value": 0,
-      "limits": {
-        "lolo": 190,
-        "low": 195,
-        "high": 205,
-        "hihi": 210
-      },
-      "notify": {
-        "name": "",
-        "number": "",
-        "time": 0
-      }
-    }
-  },
-  "startLevelTillsats": {
-    "action": "setting",
-    "type": "scalar",
-    "value": 600,
-    "unit": "Kmin",
-    "alarm": {
-      "value": 0,
-      "limits": {
-        "lolo": 190,
-        "low": 195,
-        "high": 605,
-        "hihi": 610
-      },
-      "notify": {
-        "name": "",
-        "number": "",
-        "time": 0
-      }
-    }
-  },
-  "startTempHeatIn": {
-    "action": "setting",
-    "type": "scalar",
-    "value": 44,
-    "unit": "C",
-    "alarm": {
-      "value": 0,
-      "limits": {
-        "lolo": 34,
-        "low": 39,
-        "high": 49,
-        "hihi": 54
-      },
-      "notify": {
-        "name": "",
-        "number": "",
-        "time": 0
-      }
-    }
-  },
-  "startTempHeatInHy": {
-    "action": "setting",
-    "type": "scalar",
-    "value": 5,
-    "unit": "K",
-    "alarm": {
-      "value": 0,
-      "limits": {
-        "lolo": 0,
         "low": 0,
         "high": 10,
-        "hihi": 10
+        "hihi": 11
       },
       "notify": {
         "name": "",
         "number": "",
         "time": 0
       }
+    },
+    "modbus": {
+      "type": "holding",
+      "address": 24,
+      "signed": true,
+      "res": 1
     }
   },
-  "startTempHotWater": {
-    "action": "setting",
-    "type": "scalar",
-    "value": 46,
-    "unit": "C",
-    "alarm": {
-      "value": 0,
-      "limits": {
-        "lolo": 36,
-        "low": 41,
-        "high": 51,
-        "hihi": 56
-      },
-      "notify": {
-        "name": "",
-        "number": "",
-        "time": 0
-      }
-    }
-  },
-  "startTempHotWaterHy": {
-    "action": "setting",
-    "type": "scalar",
-    "value": 4,
-    "unit": "K",
-    "alarm": {
-      "value": 0,
-      "limits": {
-        "lolo": 0,
-        "low": 0,
-        "high": 10,
-        "hihi": 10
-      },
-      "notify": {
-        "name": "",
-        "number": "",
-        "time": 0
-      }
-    }
-  },
-  "solenoidSet": {
-    "action": "setting",
-    "type": "scalar",
-    "value": 45,
-    "unit": "K",
-    "alarm": {
-      "value": 0,
-      "limits": {
-        "lolo": 35,
-        "low": 40,
-        "high": 50,
-        "hihi": 55
-      },
-      "notify": {
-        "name": "",
-        "number": "",
-        "time": 0
-      }
-    }
-  },
-  "solenoidStop": {
-    "action": "setting",
-    "type": "scalar",
-    "value": 42,
-    "unit": "K",
-    "alarm": {
-      "value": 0,
-      "limits": {
-        "lolo": 32,
-        "low": 37,
-        "high": 47,
-        "hihi": 52
-      },
-      "notify": {
-        "name": "",
-        "number": "",
-        "time": 0
-      }
-    }
-  },
-  "curve0C": {
-    "action": "setting",
-    "type": "scalar",
-    "value": 45,
-    "unit": "C",
-    "alarm": {
-      "value": 0,
-      "limits": {
-        "lolo": 25,
-        "low": 30,
-        "high": 50,
-        "hihi": 55
-      },
-      "notify": {
-        "name": "",
-        "number": "",
-        "time": 0
-      }
-    }
-  },
-  "curve20C": {
-    "action": "setting",
-    "type": "scalar",
-    "value": 21,
-    "unit": "C",
-    "alarm": {
-      "value": 0,
-      "limits": {
-        "lolo": 10,
-        "low": 15,
-        "high": 25,
-        "hihi": 30
-      },
-      "notify": {
-        "name": "",
-        "number": "",
-        "time": 0
-      }
-    }
-  },
-  "summerDownDelay": {
-    "action": "setting",
-    "type": "scalar",
-    "value": 5,
-    "unit": "h",
-    "alarm": {
-      "value": 0,
-      "limits": {
-        "lolo": -1,
-        "low": -1,
-        "high": 10,
-        "hihi": 20
-      },
-      "notify": {
-        "name": "",
-        "number": "",
-        "time": 0
-      }
-    }
-  },
-  "summStopTemp": {
-    "action": "setting",
-    "type": "scalar",
-    "value": 18,
-    "unit": "C",
-    "alarm": {
-      "value": 0,
-      "limits": {
-        "lolo": 8,
-        "low": 13,
-        "high": 23,
-        "hihi": 28
-      },
-      "notify": {
-        "name": "",
-        "number": "",
-        "time": 0
-      }
-    }
-  },
-  "minBegrIntro": {
-    "action": "setting",
-    "type": "scalar",
-    "value": 20,
-    "unit": "C",
-    "alarm": {
-      "value": 0,
-      "limits": {
-        "lolo": 10,
-        "low": 15,
-        "high": 25,
-        "hihi": 30
-      },
-      "notify": {
-        "name": "",
-        "number": "",
-        "time": 0
-      }
-    }
-  },
-  "maxBegrIntro": {
-    "action": "setting",
-    "type": "scalar",
-    "value": 60,
-    "unit": "C",
-    "alarm": {
-      "value": 0,
-      "limits": {
-        "lolo": 50,
-        "low": 55,
-        "high": 65,
-        "hihi": 70
-      },
-      "notify": {
-        "name": "",
-        "number": "",
-        "time": 0
-      }
-    }
-  },
-  "defrostBlocking": {
-    "action": "setting",
-    "type": "scalar",
-    "value": -1,
-    "unit": "C",
-    "alarm": {
-      "value": 0,
-      "limits": {
-        "lolo": -20,
-        "low": -15,
-        "high": 5,
-        "hihi": 10
-      },
-      "notify": {
-        "name": "",
-        "number": "",
-        "time": 0
-      }
-    }
-  },
-  "defrostLoadTemp": {
-    "action": "setting",
-    "type": "scalar",
-    "value": 32,
-    "unit": "C",
-    "alarm": {
-      "value": 0,
-      "limits": {
-        "lolo": 22,
-        "low": 28,
-        "high": 38,
-        "hihi": 42
-      },
-      "notify": {
-        "name": "",
-        "number": "",
-        "time": 0
-      }
-    }
-  },
-  "outTempBlock": {
-    "action": "setting",
-    "type": "scalar",
-    "value": -17,
-    "unit": "C",
-    "alarm": {
-      "value": 0,
-      "limits": {
-        "lolo": -27,
-        "low": -22,
-        "high": -12,
-        "hihi": -7
-      },
-      "notify": {
-        "name": "",
-        "number": "",
-        "time": 0
-      }
-    }
-  },
-  "fanSet": {
-    "action": "setting",
-    "type": "scalar",
-    "value": 80,
-    "unit": "C",
-    "alarm": {
-      "value": 0,
-      "limits": {
-        "lolo": 70,
-        "low": 75,
-        "high": 85,
-        "hihi": 90
-      },
-      "notify": {
-        "name": "",
-        "number": "",
-        "time": 0
-      }
-    }
-  },
-  "fanMax": {
-    "action": "setting",
-    "type": "scalar",
-    "value": 100,
-    "unit": "%",
-    "alarm": {
-      "value": 0,
-      "limits": {
-        "lolo": 90,
-        "low": 95,
-        "high": 105,
-        "hihi": 105
-      },
-      "notify": {
-        "name": "",
-        "number": "",
-        "time": 0
-      }
-    }
-  },
-  "LB3ValveMax": {
-    "action": "setting",
-    "type": "scalar",
-    "value": 90,
-    "unit": "%",
-    "alarm": {
-      "value": 0,
-      "limits": {
-        "lolo": 80,
-        "low": 85,
-        "high": 95,
-        "hihi": 100
-      },
-      "notify": {
-        "name": "",
-        "number": "",
-        "time": 0
-      }
-    }
-  },
-  "LB3ValveSet": {
-    "action": "setting",
-    "type": "scalar",
-    "value": 43,
-    "unit": "C",
-    "alarm": {
-      "value": 0,
-      "limits": {
-        "lolo": 33,
-        "low": 38,
-        "high": 48,
-        "hihi": 53
-      },
-      "notify": {
-        "name": "",
-        "number": "",
-        "time": 0
-      }
-    }
-  },
-  "LB3ValveDelay": {
-    "action": "setting",
-    "type": "scalar",
-    "value": 15,
-    "unit": "min",
-    "alarm": {
-      "value": 0,
-      "limits": {
-        "lolo": 5,
-        "low": 10,
-        "high": 20,
-        "hihi": 25
-      },
-      "notify": {
-        "name": "",
-        "number": "",
-        "time": 0
-      }
-    }
-  },
-  "defrostMaxTime": {
-    "action": "setting",
-    "type": "scalar",
-    "value": 9,
-    "unit": "min",
-    "alarm": {
-      "value": 0,
-      "limits": {
-        "lolo": 0,
-        "low": 1,
-        "high": 15,
-        "hihi": 20
-      },
-      "notify": {
-        "name": "",
-        "number": "",
-        "time": 0
-      }
-    }
-  },
-  "extSetpoint": {
+  "cube05": {
     "action": "setting",
     "type": "scalar",
     "value": 0,
-    "unit": "C",
-    "alarm": {
-      "value": 0,
-      "limits": {
-        "lolo": -1,
-        "low": -1,
-        "high": 10,
-        "hihi": 10
-      },
-      "notify": {
-        "name": "",
-        "number": "",
-        "time": 0
-      }
-    }
-  },
-  "extOutsideTemp": {
-    "action": "setting",
-    "type": "scalar",
-    "value": 0,
-    "unit": "C",
-    "alarm": {
-      "value": 0,
-      "limits": {
-        "lolo": -1,
-        "low": -1,
-        "high": 10,
-        "hihi": 10
-      },
-      "notify": {
-        "name": "",
-        "number": "",
-        "time": 0
-      }
-    }
-  },
-  "externalBlocking": {
-    "action": "setting",
-    "type": "scalar",
-    "value": 107,
     "unit": "",
     "alarm": {
-      "value": 4,
+      "value": 0,
       "limits": {
-        "lolo": -1,
+        "lolo": -2,
         "low": -1,
-        "high": 100,
-        "hihi": 100
+        "high": 2,
+        "hihi": 3
       },
       "notify": {
         "name": "",
         "number": "",
         "time": 0
       }
+    },
+    "modbus": {
+      "type": "coil",
+      "address": 10
+    }
+  },
+  "cube06": {
+    "action": "reading",
+    "type": "scalar",
+    "value": 1,
+    "unit": "",
+    "alarm": {
+      "value": 0,
+      "limits": {
+        "lolo": -2,
+        "low": -1,
+        "high": 2,
+        "hihi": 3
+      },
+      "notify": {
+        "name": "",
+        "number": "",
+        "time": 0
+      }
+    },
+    "modbus": {
+      "type": "coil",
+      "address": 11
     }
   }
 }

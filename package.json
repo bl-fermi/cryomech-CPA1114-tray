@@ -1,5 +1,5 @@
 {
-  "name": "blinky-power-relay-tray",
+  "name": "blinky-modbus-tray",
   "version": "1.0.0",
   "description": "",
   "main": "node_modules/node-red/red.js -s ./settings.js -u ./",
@@ -21,8 +21,7 @@
   "homepage": "",
   "dependencies": {
     "node-red": "^3.0.2",
-    "node-red-contrib-modbus": "^5.23.3",
-    "node-red-dashboard": "^3.2.3",
-    "node-red-node-pi-gpio": "~2.0.5"
+    "node-red-contrib-modbus": "^5.26.0",
+    "node-red-dashboard": "^3.4.0"
   }
 }

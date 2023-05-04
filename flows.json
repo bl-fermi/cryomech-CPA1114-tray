@@ -2,50 +2,10 @@
     {
         "id": "281e0a510310e9c6",
         "type": "tab",
-        "label": "qvantum-q65llb3-tray",
+        "label": "Modbus Client",
         "disabled": false,
         "info": "",
         "env": []
-    },
-    {
-        "id": "24d6701c4857e25e",
-        "type": "group",
-        "z": "281e0a510310e9c6",
-        "name": "Edit Me",
-        "style": {
-            "stroke": "#001f60",
-            "fill": "#9363b7",
-            "label": true,
-            "label-position": "n",
-            "color": "#ffff00"
-        },
-        "nodes": [
-            "fcc98447c16c3949"
-        ],
-        "x": 94,
-        "y": 319,
-        "w": 212,
-        "h": 82
-    },
-    {
-        "id": "2e3bf4351b6eb1e9",
-        "type": "group",
-        "z": "281e0a510310e9c6",
-        "name": "Edit Me",
-        "style": {
-            "stroke": "#000000",
-            "fill": "#9363b7",
-            "label": true,
-            "label-position": "n",
-            "color": "#ffff00"
-        },
-        "nodes": [
-            "3f594171d5aa07ab"
-        ],
-        "x": 654,
-        "y": 299,
-        "w": 252,
-        "h": 82
     },
     {
         "id": "6ad7c930.1a06b8",
@@ -172,8 +132,8 @@
         "stateLogEnabled": false,
         "queueLogEnabled": false,
         "failureLogEnabled": false,
-        "tcpHost": "192.168.0.10",
-        "tcpPort": "502",
+        "tcpHost": "$(MODBUSIP)",
+        "tcpPort": "$(MODBUSPORT)",
         "tcpType": "DEFAULT",
         "serialPort": "/dev/ttyUSB",
         "serialType": "RTU-BUFFERD",
@@ -191,19 +151,52 @@
         "parallelUnitIdsAllowed": false
     },
     {
+        "id": "76465bf5aba36e59",
+        "type": "modbus-client",
+        "name": "Mythical Slave",
+        "clienttype": "tcp",
+        "bufferCommands": true,
+        "stateLogEnabled": false,
+        "queueLogEnabled": false,
+        "failureLogEnabled": true,
+        "tcpHost": "127.0.0.1",
+        "tcpPort": "10502",
+        "tcpType": "DEFAULT",
+        "serialPort": "/dev/ttyUSB",
+        "serialType": "RTU-BUFFERD",
+        "serialBaudrate": "9600",
+        "serialDatabits": "8",
+        "serialStopbits": "1",
+        "serialParity": "none",
+        "serialConnectionDelay": "100",
+        "serialAsciiResponseStartDelimiter": "0x3A",
+        "unit_id": "1",
+        "commandDelay": "1",
+        "clientTimeout": "1000",
+        "reconnectOnTimeout": true,
+        "reconnectTimeout": "2000",
+        "parallelUnitIdsAllowed": true,
+        "showWarnings": true,
+        "showLogs": true
+    },
+    {
         "id": "30f384ea.cf21fc",
         "type": "function",
         "z": "281e0a510310e9c6",
         "name": "Save tray config in Memory",
-        "func": "msg.payload.watchdog.value = 0;\nglobal.set('tray', msg.payload);\nreturn msg;",
-        "outputs": 0,
+        "func": "msg.payload.watchdog.value = 0;\nlet tray = msg.payload;\nflow.set('tray', msg.payload);\nlet modbusCubes = [];\nlet modbusSettingCubes = [];\nlet keys = Object.keys(msg.payload)\nfor (let ikey  in keys)\n{\n    if (msg.payload[keys[ikey]].hasOwnProperty('type'))\n    {\n        if (msg.payload[keys[ikey]].hasOwnProperty('modbus')) \n        {\n            modbusCubes.push(keys[ikey]);\n            if (msg.payload[keys[ikey]].action == \"setting\") \n            {\n                modbusSettingCubes.push(keys[ikey]);\n            }\n        }\n    }\n}\nflow.set('modbusCubes', modbusCubes);\nflow.set('modbusSettingCubes', modbusSettingCubes);\nlet modbusMsg = [];\nfor (let icube in modbusCubes) \n{\n    if (tray[modbusCubes[icube]].modbus.type == \"holding\") \n    {\n        let newVal = tray[modbusCubes[icube]].value;\n        newVal = Math.round(newVal * tray[modbusCubes[icube]].modbus.res);\n        if (tray[modbusCubes[icube]].modbus.signed) {\n            if (newVal > 32767) newVal = 32767;\n            if (newVal < -32767) newVal = -32767;\n            if (newVal < 0) newVal = newVal + 65536;\n        }\n        if (newVal < 0) newVal = 0;\n        if (newVal >= 65536) newVal = 65535;\n        modbusMsg.push({ value: newVal, 'fc': 0x6, 'unitid': 1, 'address': tray[modbusCubes[icube]].modbus.address, 'quantity': 1 });\n    }\n    if (tray[modbusCubes[icube]].modbus.type == \"coil\") \n    {\n        let newVal = tray[modbusCubes[icube]].value;\n        modbusMsg.push({ value: newVal, 'fc': 0x5, 'unitid': 1, 'address': tray[modbusCubes[icube]].modbus.address, 'quantity': 1 });\n    }\n}\nreturn { topic: \"modbusConfig\", payload: modbusMsg };\n",
+        "outputs": 1,
         "noerr": 0,
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 820,
+        "x": 860,
         "y": 60,
-        "wires": []
+        "wires": [
+            [
+                "099a4107bd867ee7"
+            ]
+        ]
     },
     {
         "id": "5023092b.a0fe38",
@@ -217,7 +210,7 @@
         "nl": false,
         "rap": false,
         "inputs": 0,
-        "x": 110,
+        "x": 150,
         "y": 200,
         "wires": [
             [
@@ -246,7 +239,7 @@
         "topic": "readTraydesc",
         "payload": "MQTTSUBSCRIBE",
         "payloadType": "env",
-        "x": 100,
+        "x": 140,
         "y": 60,
         "wires": [
             [
@@ -265,7 +258,7 @@
         "sendError": false,
         "encoding": "none",
         "allProps": false,
-        "x": 460,
+        "x": 500,
         "y": 60,
         "wires": [
             [
@@ -281,7 +274,7 @@
         "property": "payload",
         "action": "obj",
         "pretty": false,
-        "x": 630,
+        "x": 670,
         "y": 60,
         "wires": [
             [
@@ -294,13 +287,13 @@
         "type": "function",
         "z": "281e0a510310e9c6",
         "name": "Init flow Variables",
-        "func": "var mqttSplit = msg.payload.split('/');\nvar trayProps = {\n    box         :   mqttSplit[0],\n    type        :   mqttSplit[1],\n    name        :   mqttSplit[2],\n};\nglobal.set('trayProps',trayProps);\nglobal.set('settingInProgress', false);\nreturn {topic: 'readFile', payload:true};",
+        "func": "var mqttSplit = msg.payload.split('/');\nvar trayProps = {\n    box         :   mqttSplit[0],\n    type        :   mqttSplit[1],\n    name        :   mqttSplit[2],\n};\nflow.set('trayProps',trayProps);\nflow.set('settingInProgress', false);\nreturn {topic: 'readFile', payload:true};",
         "outputs": 1,
         "noerr": 0,
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 270,
+        "x": 310,
         "y": 60,
         "wires": [
             [
@@ -318,8 +311,8 @@
         "createDir": false,
         "overwriteFile": "true",
         "encoding": "none",
-        "x": 1370,
-        "y": 480,
+        "x": 1570,
+        "y": 400,
         "wires": [
             []
         ]
@@ -329,14 +322,14 @@
         "type": "function",
         "z": "281e0a510310e9c6",
         "name": "Save Settings to File",
-        "func": "var jsonPretty = JSON.stringify(global.get('tray'),null,2);\nreturn {topic: msg.payload, payload:jsonPretty};",
+        "func": "var jsonPretty = JSON.stringify(flow.get('tray'),null,2);\nreturn {topic: msg.payload, payload:jsonPretty};",
         "outputs": 1,
         "noerr": 0,
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 1180,
-        "y": 480,
+        "x": 1380,
+        "y": 400,
         "wires": [
             [
                 "168ce872.83d788"
@@ -351,7 +344,7 @@
         "property": "payload",
         "action": "obj",
         "pretty": false,
-        "x": 290,
+        "x": 330,
         "y": 200,
         "wires": [
             [
@@ -371,8 +364,8 @@
         "winHide": false,
         "oldrc": false,
         "name": "Restart",
-        "x": 700,
-        "y": 1120,
+        "x": 720,
+        "y": 1020,
         "wires": [
             [],
             [],
@@ -401,8 +394,8 @@
         "checkall": "true",
         "repair": false,
         "outputs": 2,
-        "x": 310,
-        "y": 1140,
+        "x": 330,
+        "y": 1040,
         "wires": [
             [
                 "985cd59b3e414efe"
@@ -423,8 +416,8 @@
         "timer": "",
         "oldrc": false,
         "name": "Reboot",
-        "x": 500,
-        "y": 1180,
+        "x": 520,
+        "y": 1080,
         "wires": [
             [],
             [],
@@ -448,8 +441,8 @@
         "drop": false,
         "allowrate": false,
         "outputs": 1,
-        "x": 160,
-        "y": 1140,
+        "x": 180,
+        "y": 1040,
         "wires": [
             [
                 "9e290594.69c548"
@@ -470,8 +463,8 @@
         "correl": "",
         "expiry": "",
         "broker": "79250bf3.365cc4",
-        "x": 1330,
-        "y": 420,
+        "x": 1530,
+        "y": 340,
         "wires": []
     },
     {
@@ -482,7 +475,7 @@
         "links": [
             "4bddb9a0e424ebf4"
         ],
-        "x": 735,
+        "x": 775,
         "y": 140,
         "wires": []
     },
@@ -496,8 +489,8 @@
             "ed0bb779fa7acca6",
             "0cd853d250156bc1"
         ],
-        "x": 55,
-        "y": 360,
+        "x": 75,
+        "y": 380,
         "wires": [
             [
                 "fcc98447c16c3949"
@@ -536,7 +529,7 @@
         "checkall": "true",
         "repair": false,
         "outputs": 4,
-        "x": 630,
+        "x": 670,
         "y": 200,
         "wires": [
             [
@@ -564,7 +557,7 @@
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 450,
+        "x": 490,
         "y": 200,
         "wires": [
             [
@@ -577,14 +570,14 @@
         "type": "function",
         "z": "281e0a510310e9c6",
         "name": "Publish tray",
-        "func": "if (!msg.payload) return null;\nvar tray = global.get('tray');\nvar newMsg = \n{\n    topic: global.get('trayProps').box + '/' + global.get('trayProps').type + '/' + global.get('trayProps').name + '/reading',\n    payload: JSON.stringify(tray)\n};\nreturn  newMsg;  \n",
+        "func": "if (!msg.payload) return null;\nvar tray = flow.get('tray');\nvar newMsg = \n{\n    topic: flow.get('trayProps').box + '/' + flow.get('trayProps').type + '/' + flow.get('trayProps').name + '/reading',\n    payload: JSON.stringify(tray)\n};\nreturn  newMsg;  \n",
         "outputs": 1,
         "noerr": 0,
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 1150,
-        "y": 420,
+        "x": 1350,
+        "y": 340,
         "wires": [
             [
                 "5152879001ec63ea"
@@ -610,8 +603,8 @@
             "de9724337ab6b427",
             "184fe4c567bcfc8d"
         ],
-        "x": 1035,
-        "y": 420,
+        "x": 1235,
+        "y": 340,
         "wires": [
             [
                 "f75b9887786b11c4"
@@ -627,7 +620,7 @@
             "45a97566b65c65cc",
             "05c0c7b4f59ca88d"
         ],
-        "x": 735,
+        "x": 775,
         "y": 180,
         "wires": []
     },
@@ -639,7 +632,7 @@
         "links": [
             "720ccfb4b4949146"
         ],
-        "x": 735,
+        "x": 775,
         "y": 220,
         "wires": []
     },
@@ -651,7 +644,7 @@
         "links": [
             "c81b72b9290d1c36"
         ],
-        "x": 35,
+        "x": 75,
         "y": 520,
         "wires": [
             [
@@ -664,13 +657,13 @@
         "type": "function",
         "z": "281e0a510310e9c6",
         "name": "Save config file",
-        "func": "let cubeAlarm = global.get('tray')[msg.payload.cube].alarm;\ncubeAlarm.limits.lolo = msg.payload.limits.lolo;\ncubeAlarm.limits.low  = msg.payload.limits.low;\ncubeAlarm.limits.high = msg.payload.limits.high;\ncubeAlarm.limits.hihi = msg.payload.limits.hihi;\ncubeAlarm.notify.name = msg.payload.notify.name;\ncubeAlarm.notify.number = msg.payload.notify.number;\nreturn {topic:'trayConfigCompleted', payload:true};",
+        "func": "let cubeAlarm = flow.get('tray')[msg.payload.cube].alarm;\ncubeAlarm.limits.lolo = msg.payload.limits.lolo;\ncubeAlarm.limits.low  = msg.payload.limits.low;\ncubeAlarm.limits.high = msg.payload.limits.high;\ncubeAlarm.limits.hihi = msg.payload.limits.hihi;\ncubeAlarm.notify.name = msg.payload.notify.name;\ncubeAlarm.notify.number = msg.payload.notify.number;\nreturn {topic:'trayConfigCompleted', payload:true};",
         "outputs": 1,
         "noerr": 0,
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 160,
+        "x": 200,
         "y": 520,
         "wires": [
             [
@@ -694,8 +687,8 @@
             "de9724337ab6b427",
             "184fe4c567bcfc8d"
         ],
-        "x": 1035,
-        "y": 480,
+        "x": 1235,
+        "y": 400,
         "wires": [
             [
                 "89892a30.598e28"
@@ -711,8 +704,8 @@
             "45a97566b65c65cc",
             "05c0c7b4f59ca88d"
         ],
-        "x": 395,
-        "y": 480,
+        "x": 345,
+        "y": 500,
         "wires": []
     },
     {
@@ -735,8 +728,8 @@
         "onceDelay": "20",
         "topic": "archiveClock",
         "payloadType": "date",
-        "x": 140,
-        "y": 880,
+        "x": 160,
+        "y": 780,
         "wires": [
             [
                 "6a9b2f2af2f7d084"
@@ -748,14 +741,14 @@
         "type": "function",
         "z": "281e0a510310e9c6",
         "name": "Archive Pulse",
-        "func": "var tray = global.get('tray');\nvar lastArchive = context.get('lastArchive');\nvar now = new Date().getTime();\nif ((now - lastArchive) <= tray.arcPeriod) return null;\ncontext.set('lastArchive', now);\nreturn {topic:'archivePulse', payload:true};",
+        "func": "var tray = flow.get('tray');\nvar lastArchive = context.get('lastArchive');\nvar now = new Date().getTime();\nif ((now - lastArchive) <= tray.arcPeriod) return null;\ncontext.set('lastArchive', now);\nreturn {topic:'archivePulse', payload:true};",
         "outputs": 1,
         "noerr": 0,
         "initialize": "// Code added here will be run once\n// whenever the node is started.\ncontext.set('lastArchive', new Date().getTime());",
         "finalize": "",
         "libs": [],
-        "x": 350,
-        "y": 880,
+        "x": 370,
+        "y": 780,
         "wires": [
             [
                 "d74e019a27b1a659"
@@ -770,7 +763,7 @@
         "links": [
             "6c366c9b4d8b8f19"
         ],
-        "x": 735,
+        "x": 775,
         "y": 260,
         "wires": []
     },
@@ -782,8 +775,8 @@
         "links": [
             "72b5ca0e2043aba0"
         ],
-        "x": 55,
-        "y": 1140,
+        "x": 75,
+        "y": 1040,
         "wires": [
             [
                 "557e4f40.b904e"
@@ -795,14 +788,14 @@
         "type": "function",
         "z": "281e0a510310e9c6",
         "name": "Save flow env variables",
-        "func": "global.set(msg.topic,msg.payload);\nreturn null;",
+        "func": "flow.set(msg.topic,msg.payload);\nreturn null;",
         "outputs": 0,
         "noerr": 0,
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 330,
-        "y": 1040,
+        "x": 350,
+        "y": 940,
         "wires": []
     },
     {
@@ -826,8 +819,8 @@
         "topic": "pm2Name",
         "payload": "PM2NAME",
         "payloadType": "env",
-        "x": 130,
-        "y": 1040,
+        "x": 150,
+        "y": 940,
         "wires": [
             [
                 "6af76a294daa96eb"
@@ -839,14 +832,14 @@
         "type": "function",
         "z": "281e0a510310e9c6",
         "name": "Get pm2Name",
-        "func": "msg.payload = global.get(\"pm2Name\");\nreturn msg;",
+        "func": "msg.payload = flow.get(\"pm2Name\");\nreturn msg;",
         "outputs": 1,
         "noerr": 0,
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 520,
-        "y": 1120,
+        "x": 540,
+        "y": 1020,
         "wires": [
             [
                 "c0939e4a.6386f"
@@ -873,8 +866,8 @@
         "onceDelay": 0.1,
         "topic": "archiveNow",
         "payloadType": "date",
-        "x": 130,
-        "y": 940,
+        "x": 150,
+        "y": 840,
         "wires": [
             [
                 "76d6712bed883108"
@@ -892,8 +885,8 @@
         "initialize": "// Code added here will be run once\n// whenever the node is started.\ncontext.set('lastArchive', new Date().getTime());",
         "finalize": "",
         "libs": [],
-        "x": 330,
-        "y": 940,
+        "x": 350,
+        "y": 840,
         "wires": [
             [
                 "d74e019a27b1a659"
@@ -908,8 +901,8 @@
         "links": [
             "04d132d87ffeb91a"
         ],
-        "x": 395,
-        "y": 520,
+        "x": 345,
+        "y": 540,
         "wires": []
     },
     {
@@ -926,8 +919,8 @@
         "correl": "",
         "expiry": "",
         "broker": "79250bf3.365cc4",
-        "x": 760,
-        "y": 880,
+        "x": 780,
+        "y": 780,
         "wires": []
     },
     {
@@ -935,14 +928,14 @@
         "type": "function",
         "z": "281e0a510310e9c6",
         "name": "Publish tray",
-        "func": "if (!msg.payload) return null;\nvar tray = global.get('tray');\nvar newMsg = \n{\n    topic: global.get('trayProps').box + '/' + global.get('trayProps').type + '/' + global.get('trayProps').name + '/archive',\n    payload: JSON.stringify(tray)\n};\nreturn  newMsg;  \n",
+        "func": "if (!msg.payload) return null;\nvar tray = flow.get('tray');\nvar newMsg = \n{\n    topic: flow.get('trayProps').box + '/' + flow.get('trayProps').type + '/' + flow.get('trayProps').name + '/archive',\n    payload: JSON.stringify(tray)\n};\nreturn  newMsg;  \n",
         "outputs": 1,
         "noerr": 0,
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 570,
-        "y": 880,
+        "x": 590,
+        "y": 780,
         "wires": [
             [
                 "45409b1230e854cd"
@@ -953,16 +946,15 @@
         "id": "fcc98447c16c3949",
         "type": "function",
         "z": "281e0a510310e9c6",
-        "g": "24d6701c4857e25e",
         "name": "Create Setting",
-        "func": "var tray = global.get('tray');\nvar modbusSettingMsg =\n{\n    topic: msg.topic,\n    payload: { value: 0, 'fc': 0x6, 'unitid': 1, 'address': -1, 'quantity': 1 }\n}\nvar modbusMessage = false;\n/*\n*/\n\n\nlet testVal = 0;\n\nswitch (msg.payload.cube) \n{\n    case 'startLevelCompressor':\n        modbusSettingMsg.payload.address = 20;\n        modbusSettingMsg.payload.value = prepareData(msg.payload.value, 1);\n        if (modbusSettingMsg.value < 0) return null;\n        modbusMessage = true;\n        break;\n    case 'stopLevelCompressor':\n        modbusSettingMsg.payload.address = 21;\n        modbusSettingMsg.payload.value = prepareData(msg.payload.value, 1);\n        if (modbusSettingMsg.value < 0) return null;\n        modbusMessage = true;\n        break;\n    case 'analogComp0':\n        modbusSettingMsg.payload.address = 22;\n        modbusSettingMsg.payload.value = prepareData(msg.payload.value, 1);\n        if (modbusSettingMsg.value < 0) return null;\n        modbusMessage = true;\n        break;\n    case 'analogComp100':\n        modbusSettingMsg.payload.address = 23;\n        modbusSettingMsg.payload.value = prepareData(msg.payload.value, 1);\n        if (modbusSettingMsg.value < 0) return null;\n        modbusMessage = true;\n        break;\n    case 'startLevelTillsats':\n        modbusSettingMsg.payload.address = 24;\n        modbusSettingMsg.payload.value = prepareData(msg.payload.value, 1);\n        if (modbusSettingMsg.value < 0) return null;\n        modbusMessage = true;\n        break;\n    case 'startTempHeatIn':\n        modbusSettingMsg.payload.address = 30;\n        modbusSettingMsg.payload.value = prepareData(msg.payload.value, 10);\n        if (modbusSettingMsg.value < 0) return null;\n        modbusMessage = true;\n        break;\n    case 'startTempHeatInHy':\n        modbusSettingMsg.payload.address = 31;\n        modbusSettingMsg.payload.value = prepareData(msg.payload.value, 10);\n        if (modbusSettingMsg.value < 0) return null;\n        modbusMessage = true;\n        break;\n    case 'startTempHotWater':\n        modbusSettingMsg.payload.address = 33;\n        modbusSettingMsg.payload.value = prepareData(msg.payload.value, 10);\n        if (modbusSettingMsg.value < 0) return null;\n        modbusMessage = true;\n        break;\n    case 'startTempHotWaterHy':\n        modbusSettingMsg.payload.address = 34;\n        modbusSettingMsg.payload.value = prepareData(msg.payload.value, 10);\n        if (modbusSettingMsg.value < 0) return null;\n        modbusMessage = true;\n        break;\n    case 'solenoidSet':\n        modbusSettingMsg.payload.address = 36;\n        modbusSettingMsg.payload.value = prepareData(msg.payload.value, 10);\n        if (modbusSettingMsg.value < 0) return null;\n        modbusMessage = true;\n        break;\n    case 'solenoidStop':\n        modbusSettingMsg.payload.address = 37;\n        modbusSettingMsg.payload.value = prepareData(msg.payload.value, 10);\n        if (modbusSettingMsg.value < 0) return null;\n        modbusMessage = true;\n        break;\n    case 'curve0C':\n        modbusSettingMsg.payload.address = 40;\n        modbusSettingMsg.payload.value = prepareData(msg.payload.value, 10);\n        if (modbusSettingMsg.value < 0) return null;\n        modbusMessage = true;\n        break;\n    case 'curve20C':\n        modbusSettingMsg.payload.address = 41;\n        modbusSettingMsg.payload.value = prepareData(msg.payload.value, 10);\n        if (modbusSettingMsg.value < 0) return null;\n        modbusMessage = true;\n        break;\n    case 'summerDownDelay':\n        modbusSettingMsg.payload.address = 45;\n        modbusSettingMsg.payload.value = prepareData(msg.payload.value, 1);\n        if (modbusSettingMsg.value < 0) return null;\n        modbusMessage = true;\n        break;\n    case 'summStopTemp':\n        modbusSettingMsg.payload.address = 46;\n        modbusSettingMsg.payload.value = prepareData(msg.payload.value, 10);\n        if (modbusSettingMsg.value < 0) return null;\n        modbusMessage = true;\n        break;\n    case 'minBegrIntro':\n        modbusSettingMsg.payload.address = 48;\n        modbusSettingMsg.payload.value = prepareData(msg.payload.value, 10);\n        if (modbusSettingMsg.value < 0) return null;\n        modbusMessage = true;\n        break;\n    case 'maxBegrIntro':\n        modbusSettingMsg.payload.address = 49;\n        modbusSettingMsg.payload.value = prepareData(msg.payload.value, 10);\n        if (modbusSettingMsg.value < 0) return null;\n        modbusMessage = true;\n        break;\n    case 'defrostBlocking':\n        modbusSettingMsg.payload.address = 51;\n        modbusSettingMsg.payload.value = prepareData(msg.payload.value, 10);\n        if (modbusSettingMsg.value < 0) return null;\n        modbusMessage = true;\n        break;\n    case 'defrostLoadTemp':\n        modbusSettingMsg.payload.address = 53;\n        modbusSettingMsg.payload.value = prepareData(msg.payload.value, 10);\n        if (modbusSettingMsg.value < 0) return null;\n        modbusMessage = true;\n        break;\n    case 'outTempBlock':\n        modbusSettingMsg.payload.address = 54;\n        modbusSettingMsg.payload.value = prepareData(msg.payload.value, 10);\n        if (modbusSettingMsg.value < 0) return null;\n        modbusMessage = true;\n        break;\n    case 'fanSet':\n        modbusSettingMsg.payload.address = 120;\n        modbusSettingMsg.payload.value = prepareData(msg.payload.value, 1);\n        if (modbusSettingMsg.value < 0) return null;\n        modbusMessage = true;\n        break;\n    case 'fanMax':\n        modbusSettingMsg.payload.address = 124;\n        modbusSettingMsg.payload.value = prepareData(msg.payload.value, 10);\n        if (modbusSettingMsg.value < 0) return null;\n        modbusMessage = true;\n        break;\n    case 'LB3ValveMax':\n        modbusSettingMsg.payload.address = 133;\n        modbusSettingMsg.payload.value = prepareData(msg.payload.value, 10);\n        if (modbusSettingMsg.value < 0) return null;\n        modbusMessage = true;\n        break;\n    case 'LB3ValveSet':\n        modbusSettingMsg.payload.address = 134;\n        modbusSettingMsg.payload.value = prepareData(msg.payload.value, 10);\n        if (modbusSettingMsg.value < 0) return null;\n        modbusMessage = true;\n        break;\n    case 'LB3ValveDelay':\n        modbusSettingMsg.payload.address = 136;\n        modbusSettingMsg.payload.value = prepareData(msg.payload.value, 1);\n        if (modbusSettingMsg.value < 0) return null;\n        modbusMessage = true;\n        break;\n    case 'defrostMaxTime':\n        modbusSettingMsg.payload.address = 202;\n        modbusSettingMsg.payload.value = prepareData(msg.payload.value, 1);\n        if (modbusSettingMsg.value < 0) return null;\n        modbusMessage = true;\n        break;\n    case 'extSetpoint':\n        modbusSettingMsg.payload.address = 2032;\n        modbusSettingMsg.payload.value = prepareData(msg.payload.value, 10);\n        if (modbusSettingMsg.value < 0) return null;\n        modbusMessage = true;\n        break;\n    case 'extOutsideTemp':\n        modbusSettingMsg.payload.address = 2033;\n        modbusSettingMsg.payload.value = prepareData(msg.payload.value, 10);\n        if (modbusSettingMsg.value < 0) return null;\n        modbusMessage = true;\n        break;\n    case 'externalBlocking':\n        modbusSettingMsg.payload.address = 2054;\n        modbusSettingMsg.payload.value = prepareData(msg.payload.value, 1);\n        if (modbusSettingMsg.value < 0) return null;\n        modbusMessage = true;\n        break;\n    case 'nonModbusSetting':\n        tray.nonModbusSetting.value = msg.payload.value;\n        modbusMessage = false;\n        break;\n    default:\n        break;\n}\nvar msgArray = [null, null];\nif (modbusMessage) \n{\n    global.set('settingInProgress', true);\n    msgArray = [modbusSettingMsg, null];\n}\nelse {\n    global.set('settingInProgress', false);\n    msgArray = [null, { topic: 'settingDone', payload: true }];\n}\nreturn msgArray;\n\nfunction prepareData(engVal, resolution) \n{\n    if (isNaN(engVal)) return -1;\n    let newVal = engVal;\n    newVal = Math.round(newVal * resolution);\n    if (newVal < 0) newVal = newVal + 65536;\n    if (newVal < 0) return -1;\n    if (newVal >= 65536) return -1;\n    return newVal;\n}",
+        "func": "let tray = flow.get('tray');\nlet modbusSettingCubes = flow.get('modbusSettingCubes');\nlet icube = modbusSettingCubes.indexOf(msg.payload.cube);\n\nif (icube >= 0)\n{\n    let modbusMsg = null;\n    if (tray[modbusSettingCubes[icube]].modbus.type == \"holding\") \n    {\n        let newVal = msg.payload.value;\n        newVal = Math.round(newVal * tray[modbusSettingCubes[icube]].modbus.res);\n        if (tray[modbusSettingCubes[icube]].modbus.signed) {\n            if (newVal > 32767) newVal = 32767;\n            if (newVal < -32767) newVal = -32767;\n            if (newVal < 0) newVal = newVal + 65536;\n        }\n        if (newVal < 0) newVal = 0;\n        if (newVal >= 65536) newVal = 65535;\n        modbusMsg = { topic: modbusSettingCubes[icube], payload:{ value: newVal, 'fc': 0x6, 'unitid': 1, 'address': tray[modbusSettingCubes[icube]].modbus.address, 'quantity': 1 }};\n    }\n    if (tray[modbusSettingCubes[icube]].modbus.type == \"coil\") \n    {\n        let newVal = msg.payload.value;\n        modbusMsg = { topic: modbusSettingCubes[icube], payload:{ value: newVal, 'fc': 0x5, 'unitid': 1, 'address': tray[modbusSettingCubes[icube]].modbus.address, 'quantity': 1 }};\n    }\n    if (modbusMsg != null) flow.set('settingInProgress', true);\n    return [modbusMsg, null];\n}\n\nswitch (msg.payload.cube) \n{\n    case 'alias':\n        tray.alias.value = msg.payload.value;\n       break;\n    default:\n        break;\n}\nreturn [null, { topic: 'settingDone', payload: true }];\n",
         "outputs": 2,
         "noerr": 0,
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 200,
-        "y": 360,
+        "x": 220,
+        "y": 380,
         "wires": [
             [
                 "3744a97333f32473"
@@ -973,199 +965,18 @@
         ]
     },
     {
-        "id": "14df468d12919153",
-        "type": "inject",
-        "z": "281e0a510310e9c6",
-        "name": "Every hour",
-        "props": [
-            {
-                "p": "payload"
-            },
-            {
-                "p": "topic",
-                "vt": "str"
-            }
-        ],
-        "repeat": "",
-        "crontab": "0 0-23 * * *",
-        "once": false,
-        "onceDelay": "10",
-        "topic": "",
-        "payload": "",
-        "payloadType": "date",
-        "x": 130,
-        "y": 1360,
-        "wires": [
-            [
-                "25e72125efa7bdfa"
-            ]
-        ]
-    },
-    {
-        "id": "25e72125efa7bdfa",
-        "type": "delay",
-        "z": "281e0a510310e9c6",
-        "name": "",
-        "pauseType": "delay",
-        "timeout": "2",
-        "timeoutUnits": "minutes",
-        "rate": "1",
-        "nbRateUnits": "1",
-        "rateUnits": "second",
-        "randomFirst": "1",
-        "randomLast": "5",
-        "randomUnits": "seconds",
-        "drop": false,
-        "allowrate": false,
-        "outputs": 1,
-        "x": 280,
-        "y": 1360,
-        "wires": [
-            [
-                "24f4af945e29f7c6"
-            ]
-        ]
-    },
-    {
-        "id": "8e6f8bd3a932bc3d",
-        "type": "inject",
-        "z": "281e0a510310e9c6",
-        "name": "Init+20sec",
-        "props": [
-            {
-                "p": "payload"
-            },
-            {
-                "p": "topic",
-                "vt": "str"
-            }
-        ],
-        "repeat": "",
-        "crontab": "",
-        "once": true,
-        "onceDelay": "5",
-        "topic": "",
-        "payloadType": "date",
-        "x": 130,
-        "y": 1300,
-        "wires": [
-            [
-                "24f4af945e29f7c6"
-            ]
-        ]
-    },
-    {
-        "id": "a93e00778571e31f",
-        "type": "json",
-        "z": "281e0a510310e9c6",
-        "name": "",
-        "property": "payload",
-        "action": "obj",
-        "pretty": false,
-        "x": 310,
-        "y": 1460,
-        "wires": [
-            [
-                "fb8cf079f15bee62"
-            ]
-        ]
-    },
-    {
-        "id": "fb8cf079f15bee62",
-        "type": "function",
-        "z": "281e0a510310e9c6",
-        "name": "Save espotPrice",
-        "func": "global.set('espotPrice',msg.payload)\nreturn msg;",
-        "outputs": 0,
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "libs": [],
-        "x": 460,
-        "y": 1460,
-        "wires": []
-    },
-    {
-        "id": "24f4af945e29f7c6",
-        "type": "mqtt out",
-        "z": "281e0a510310e9c6",
-        "name": "Spot Price Ping",
-        "topic": "$(SPOTPRICEPING)",
-        "qos": "0",
-        "retain": "false",
-        "respTopic": "",
-        "contentType": "",
-        "userProps": "",
-        "correl": "",
-        "expiry": "",
-        "broker": "79250bf3.365cc4",
-        "x": 460,
-        "y": 1300,
-        "wires": []
-    },
-    {
-        "id": "15b4a7808207ead4",
-        "type": "mqtt in",
-        "z": "281e0a510310e9c6",
-        "name": "Spot Price Reading",
-        "topic": "$(SPOTPRICEREADING)",
-        "qos": "0",
-        "datatype": "auto",
-        "broker": "79250bf3.365cc4",
-        "nl": false,
-        "rap": true,
-        "rh": 0,
-        "inputs": 0,
-        "x": 140,
-        "y": 1460,
-        "wires": [
-            [
-                "a93e00778571e31f"
-            ]
-        ]
-    },
-    {
-        "id": "a1698f8bfcc63203",
-        "type": "inject",
-        "z": "281e0a510310e9c6",
-        "name": "read Status",
-        "props": [
-            {
-                "p": "payload"
-            },
-            {
-                "p": "topic",
-                "vt": "str"
-            }
-        ],
-        "repeat": "5",
-        "crontab": "",
-        "once": true,
-        "onceDelay": "8",
-        "topic": "readTable",
-        "payload": "",
-        "payloadType": "date",
-        "x": 110,
-        "y": 640,
-        "wires": [
-            [
-                "bfb2ae23375de0ae"
-            ]
-        ]
-    },
-    {
         "id": "99fbe8135d0ce161",
         "type": "function",
         "z": "281e0a510310e9c6",
         "name": "Readings Alarm Scan",
-        "func": "var newData = msg.payload;\nvar tray = global.get('tray');\nvar alarmFlagReading = scalarAlarmScan(tray, 'reading');\nvar alarmFlagSetting = scalarAlarmScan(tray, 'setting');\nvar newMsg   = null;\nif (newData)\n{\n    newMsg = \n    {\n        topic: 'newData',\n        payload: true\n    }\n}\nreturn newMsg;\n\nfunction getActionArray(tray, type, actionType)\n{\n    var actionArray = [];\n    var keys = Object.keys(tray);\n    for (var ii = 0; ii < keys.length; ++ii)\n    {\n        if (tray[keys[ii]].hasOwnProperty('type'))\n        {\n            if (tray[keys[ii]].type == type)\n            {\n                if (tray[keys[ii]].action == actionType)\n                {\n                    actionArray.push(tray[keys[ii]]);\n                }\n            }\n        }\n    }\n    return actionArray;\n}\nfunction scalarAlarmScan(tray, actionType)\n{\n    var alarmFlag = false;\n    var actionArray = getActionArray(tray, 'scalar', actionType);\n    if (actionArray.length > 0)\n    {\n        for (var ii = 0; ii < actionArray.length; ++ii)\n        {\n            let oldAlarmValue = actionArray[ii].alarm.value;\n            actionArray[ii].alarm.value = 0;\n            if (!isNaN(actionArray[ii].value))\n            {\n                if (actionArray[ii].value <= actionArray[ii].alarm.limits.low)  actionArray[ii].alarm.value = 1;\n                if (actionArray[ii].value <= actionArray[ii].alarm.limits.lolo) actionArray[ii].alarm.value = 3;\n                if (actionArray[ii].value >= actionArray[ii].alarm.limits.high) actionArray[ii].alarm.value = 2;\n                if (actionArray[ii].value >= actionArray[ii].alarm.limits.hihi) actionArray[ii].alarm.value = 4;\n                if (actionArray[ii].alarm.value != oldAlarmValue) alarmFlag = true;\n            }\n        }\n    }\n    return alarmFlag;\n}\n",
+        "func": "var newData = msg.payload;\nvar tray = flow.get('tray');\nvar alarmFlagReading = scalarAlarmScan(tray, 'reading');\nvar alarmFlagSetting = scalarAlarmScan(tray, 'setting');\nvar newMsg   = null;\nif (newData)\n{\n    newMsg = \n    {\n        topic: 'newData',\n        payload: true\n    }\n}\nreturn newMsg;\n\nfunction getActionArray(tray, type, actionType)\n{\n    var actionArray = [];\n    var keys = Object.keys(tray);\n    for (var ii = 0; ii < keys.length; ++ii)\n    {\n        if (tray[keys[ii]].hasOwnProperty('type'))\n        {\n            if (tray[keys[ii]].type == type)\n            {\n                if (tray[keys[ii]].action == actionType)\n                {\n                    actionArray.push(tray[keys[ii]]);\n                }\n            }\n        }\n    }\n    return actionArray;\n}\nfunction scalarAlarmScan(tray, actionType)\n{\n    var alarmFlag = false;\n    var actionArray = getActionArray(tray, 'scalar', actionType);\n    if (actionArray.length > 0)\n    {\n        for (var ii = 0; ii < actionArray.length; ++ii)\n        {\n            let oldAlarmValue = actionArray[ii].alarm.value;\n            actionArray[ii].alarm.value = 0;\n            if (!isNaN(actionArray[ii].value))\n            {\n                if (actionArray[ii].value <= actionArray[ii].alarm.limits.low)  actionArray[ii].alarm.value = 1;\n                if (actionArray[ii].value <= actionArray[ii].alarm.limits.lolo) actionArray[ii].alarm.value = 3;\n                if (actionArray[ii].value >= actionArray[ii].alarm.limits.high) actionArray[ii].alarm.value = 2;\n                if (actionArray[ii].value >= actionArray[ii].alarm.limits.hihi) actionArray[ii].alarm.value = 4;\n                if (actionArray[ii].alarm.value != oldAlarmValue) alarmFlag = true;\n            }\n        }\n    }\n    return alarmFlag;\n}\n",
         "outputs": 1,
         "noerr": 0,
         "initialize": "// Code added here will be run once\n// whenever the node is started.\ncontext.set('lastAlarm', -1);",
         "finalize": "",
         "libs": [],
         "x": 1260,
-        "y": 720,
+        "y": 640,
         "wires": [
             [
                 "f5d0568e288098ed"
@@ -1182,306 +993,7 @@
             "05c0c7b4f59ca88d"
         ],
         "x": 1435,
-        "y": 720,
-        "wires": []
-    },
-    {
-        "id": "bfb2ae23375de0ae",
-        "type": "function",
-        "z": "281e0a510310e9c6",
-        "name": "Setup Read Holding 20-136",
-        "func": "if (global.get('settingInProgress')) return null;\nvar modeBusCommand = { 'fc': 0x3, 'unitid': 1, 'address': 20 , 'quantity': 117 } ;\nreturn {topic: \"h_20_117\", payload:modeBusCommand};\n",
-        "outputs": 1,
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "libs": [],
-        "x": 340,
         "y": 640,
-        "wires": [
-            [
-                "9c84627a90a0bb85"
-            ]
-        ]
-    },
-    {
-        "id": "9c84627a90a0bb85",
-        "type": "modbus-flex-getter",
-        "z": "281e0a510310e9c6",
-        "name": "Read Modbus",
-        "showStatusActivities": true,
-        "showErrors": true,
-        "logIOActivities": false,
-        "server": "4a8c3caa0ff9b87d",
-        "useIOFile": false,
-        "ioFile": "",
-        "useIOForPayload": false,
-        "emptyMsgOnFail": false,
-        "keepMsgProperties": false,
-        "x": 560,
-        "y": 640,
-        "wires": [
-            [],
-            [
-                "742a890ac8fe3017"
-            ]
-        ]
-    },
-    {
-        "id": "386db633a1f7401c",
-        "type": "function",
-        "z": "281e0a510310e9c6",
-        "name": "Parse Holding 20 to 136",
-        "func": "let tray = global.get('tray');\ntray.startLevelCompressor.value     = checkData(msg.payload.data[0], 1);\ntray.stopLevelCompressor.value      = checkData(msg.payload.data[1], 1);\ntray.analogComp0.value              = checkData(msg.payload.data[2], 1);\ntray.analogComp100.value            = checkData(msg.payload.data[3], 1);\ntray.startLevelTillsats.value       = checkData(msg.payload.data[4], 1);\ntray.startTempHeatIn.value          = checkData(msg.payload.data[10], 10);\ntray.startTempHeatInHy.value        = checkData(msg.payload.data[11], 10);\ntray.startTempHotWater.value        = checkData(msg.payload.data[13], 10);\ntray.startTempHotWaterHy.value      = checkData(msg.payload.data[14], 10);\ntray.solenoidSet.value              = checkData(msg.payload.data[16], 10);\ntray.solenoidStop.value             = checkData(msg.payload.data[17], 10);\ntray.curve0C.value                  = checkData(msg.payload.data[20], 10);\ntray.curve20C.value                 = checkData(msg.payload.data[21], 10);\ntray.summerDownDelay.value          = checkData(msg.payload.data[25], 1);\ntray.summStopTemp.value             = checkData(msg.payload.data[26], 10);\ntray.minBegrIntro.value             = checkData(msg.payload.data[28], 10);\ntray.maxBegrIntro.value             = checkData(msg.payload.data[29], 10);\ntray.defrostBlocking.value          = checkData(msg.payload.data[31], 10);\ntray.defrostLoadTemp.value          = checkData(msg.payload.data[33], 10);\ntray.outTempBlock.value             = checkData(msg.payload.data[34], 10);\ntray.fanSet.value                   = checkData(msg.payload.data[100], 1);\ntray.fanMax.value                   = checkData(msg.payload.data[104], 10);\ntray.LB3ValveMax.value              = checkData(msg.payload.data[113], 10);\ntray.LB3ValveSet.value              = checkData(msg.payload.data[114], 10);\ntray.LB3ValveDelay.value            = checkData(msg.payload.data[116], 1);\n\nreturn msg;\nfunction checkData(rawVal,resolution)\n{\n    let newVal = rawVal;\n    if (newVal > 32767) newVal = newVal - 65536;\n    newVal = newVal / resolution;\n    return newVal;\n}",
-        "outputs": 1,
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "libs": [],
-        "x": 950,
-        "y": 560,
-        "wires": [
-            [
-                "abb72e8f7ab115e3"
-            ]
-        ]
-    },
-    {
-        "id": "abb72e8f7ab115e3",
-        "type": "function",
-        "z": "281e0a510310e9c6",
-        "name": "Setup Read Holding 202",
-        "func": "var modeBusCommand = { 'fc': 0x3, 'unitid': 1, 'address': 202 , 'quantity': 1 } ;\nreturn { topic: \"h_202_202\", payload:modeBusCommand};\n",
-        "outputs": 1,
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "libs": [],
-        "x": 1250,
-        "y": 560,
-        "wires": [
-            [
-                "0820f3d0a0b2721e"
-            ]
-        ]
-    },
-    {
-        "id": "1b248eea812fabd1",
-        "type": "function",
-        "z": "281e0a510310e9c6",
-        "name": "Parse Holding 202",
-        "func": "let tray = global.get('tray');\ntray.defrostMaxTime.value     = checkData(msg.payload.data[0], 1);\n\nreturn msg;\nfunction checkData(rawVal,resolution)\n{\n    let newVal = rawVal;\n    if (newVal > 32767) newVal = newVal - 65536;\n    newVal = newVal / resolution;\n    return newVal;\n}",
-        "outputs": 1,
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "libs": [],
-        "x": 930,
-        "y": 600,
-        "wires": [
-            [
-                "42daebaf3cb6a4e5"
-            ]
-        ]
-    },
-    {
-        "id": "42daebaf3cb6a4e5",
-        "type": "function",
-        "z": "281e0a510310e9c6",
-        "name": "Setup Read Holding 2032 - 2054",
-        "func": "var modeBusCommand = { 'fc': 0x3, 'unitid': 1, 'address': 2032 , 'quantity': 23 } ;\nreturn { topic: \"h_2032_2054\", payload:modeBusCommand};\n",
-        "outputs": 1,
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "libs": [],
-        "x": 1220,
-        "y": 600,
-        "wires": [
-            [
-                "0820f3d0a0b2721e"
-            ]
-        ]
-    },
-    {
-        "id": "ed94891d3263d8d9",
-        "type": "function",
-        "z": "281e0a510310e9c6",
-        "name": "Parse Holding 2032-2054",
-        "func": "let tray = global.get('tray');\ntray.extSetpoint.value      = checkData(msg.payload.data[0],  10);\ntray.extOutsideTemp.value   = checkData(msg.payload.data[1],  10);\ntray.externalBlocking.value = checkData(msg.payload.data[22], 1);\n\nreturn msg;\nfunction checkData(rawVal,resolution)\n{\n    let newVal = rawVal;\n    if (newVal > 32767) newVal = newVal - 65536;\n    newVal = newVal / resolution;\n    return newVal;\n}",
-        "outputs": 1,
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "libs": [],
-        "x": 950,
-        "y": 640,
-        "wires": [
-            [
-                "61732e8d6c809d6a"
-            ]
-        ]
-    },
-    {
-        "id": "61732e8d6c809d6a",
-        "type": "function",
-        "z": "281e0a510310e9c6",
-        "name": "Setup Read Input 1300-1304",
-        "func": "var modeBusCommand = { 'fc': 0x4, 'unitid': 1, 'address': 1300 , 'quantity': 5 } ;\nreturn { topic: \"i_1300_1304\", payload:modeBusCommand};\n",
-        "outputs": 1,
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "libs": [],
-        "x": 1240,
-        "y": 640,
-        "wires": [
-            [
-                "0820f3d0a0b2721e"
-            ]
-        ]
-    },
-    {
-        "id": "aee8f924f8d9a2bc",
-        "type": "function",
-        "z": "281e0a510310e9c6",
-        "name": "Parse Input 1300-1304",
-        "func": "let tray = global.get('tray');\ntray.lowPressure.value     = checkData(msg.payload.data[0], 10);\ntray.suctionGas.value      = checkData(msg.payload.data[1], 10);\ntray.evapTemp.value        = checkData(msg.payload.data[4], 10);\n\nreturn msg;\nfunction checkData(rawVal,resolution)\n{\n    let newVal = rawVal;\n    if (newVal > 32767) newVal = newVal - 65536;\n    newVal = newVal / resolution;\n    return newVal;\n}",
-        "outputs": 1,
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "libs": [],
-        "x": 940,
-        "y": 680,
-        "wires": [
-            [
-                "489507fab5c7633c"
-            ]
-        ]
-    },
-    {
-        "id": "489507fab5c7633c",
-        "type": "function",
-        "z": "281e0a510310e9c6",
-        "name": "Setup Read Input 2001-2063",
-        "func": "var modeBusCommand = { 'fc': 0x4, 'unitid': 1, 'address': 2001 , 'quantity': 63 } ;\nreturn { topic: \"i_2001_2063\", payload:modeBusCommand};\n",
-        "outputs": 1,
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "libs": [],
-        "x": 1240,
-        "y": 680,
-        "wires": [
-            [
-                "0820f3d0a0b2721e"
-            ]
-        ]
-    },
-    {
-        "id": "a768236db09f5f6b",
-        "type": "function",
-        "z": "281e0a510310e9c6",
-        "name": "Parse Input 2001-2063",
-        "func": "let tray = global.get('tray');\ntray.defrostTank.value        = checkData(msg.payload.data[0], 10);\ntray.coolIn.value             = checkData(msg.payload.data[1], 10);\ntray.coolOut.value            = checkData(msg.payload.data[2], 10);\ntray.heatIn.value             = checkData(msg.payload.data[3], 10);\ntray.heatOut.value            = checkData(msg.payload.data[4], 10);\ntray.hotGas.value             = checkData(msg.payload.data[5], 10);\ntray.radiatorFeed.value       = checkData(msg.payload.data[6], 10);\ntray.hotWater.value           = checkData(msg.payload.data[7], 10);\ntray.outdoorTemp.value        = checkData(msg.payload.data[8], 10);\ntray.radiatorReturn.value     = checkData(msg.payload.data[9], 10);\ntray.curveSetPoint.value      = checkData(msg.payload.data[29], 10);\ntray.heatBalance.value        = checkData(msg.payload.data[30], 1);\ntray.afterTankSG.value        = checkData(msg.payload.data[59], 100);\ntray.evapFan.value            = checkData(msg.payload.data[60], 100);\ntray.condenserValve.value     = checkData(msg.payload.data[61], 100);\ntray.addHeatSG.value          = checkData(msg.payload.data[62], 100);\n\ntray.opStatus.value = msg.payload.data[53];\nlet aAlarm = msg.payload.data[49]\nlet aArray = getBits(aAlarm);\ntray.aAlarm.value            = aArray[0];\ntray.lowPressGas.value       = aArray[1];\ntray.highPressGas.value      = aArray[2];\ntray.fpCoolIn.value          = aArray[3];\ntray.heatCarryReturnIn.value = aArray[4];\ntray.hotGasHi.value          = aArray[5];\ntray.engineProtect.value     = aArray[6];\ntray.afans.value             = aArray[7];\ntray.masterComm.value        = aArray[8];\ntray.masterKBP.value         = aArray[9];\n\naAlarm = msg.payload.data[51]\naArray = getBits(aAlarm);\ntray.bAlarm.value               = aArray[0];\ntray.hiReturn.value             = aArray[1];\ntray.hiHotGas.value             = aArray[2];\ntray.evapFan1.value             = aArray[3];\ntray.evapFan2.value             = aArray[4];\ntray.lowOutTempStop.value       = aArray[5];\ntray.battery.value              = aArray[6];\ntray.aftCartridgeFuse.value     = aArray[7];\ntray.extPumpFuse.value          = aArray[8];\ntray.extAlarmB1.value           = aArray[9];\ntray.extAlarmB2.value           = aArray[10];\n\naArray = getBits(tray.opStatus.value);\ntray.compressor.value           = aArray[0];\ntray.coolantPump.value          = aArray[1];\ntray.defrostActive.value        = aArray[2];\ntray.heatCarrierPump.value      = aArray[3];\ntray.hotWaterDiverter.value     = aArray[4];\ntray.addHeat.value              = aArray[5];\ntray.radiatorPump.value         = aArray[6];\n\ntray.watchdog.value = tray.watchdog.value + 1;\nif (tray.watchdog.value > 32760) tray.watchdog.value = 0;\ntray.timeStamp = new Date().getTime();\n\nreturn {topic:'newData',payload:true};\nfunction checkData(rawVal,resolution)\n{\n    let newVal = rawVal;\n    if (newVal > 32767) newVal = newVal - 65536;\n    newVal = newVal / resolution;\n    return newVal;\n}\nfunction getBits(alarmNumber)\n{\n    let base2 = alarmNumber.toString(2);\n    let upBase2 = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];\n    for (let ii = 0; ii < base2.length; ++ii) \n    {\n        upBase2[ii] = Number(base2[base2.length - ii - 1]);\n    }\n    return upBase2;\n}",
-        "outputs": 1,
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "libs": [],
-        "x": 940,
-        "y": 720,
-        "wires": [
-            [
-                "99fbe8135d0ce161"
-            ]
-        ]
-    },
-    {
-        "id": "742a890ac8fe3017",
-        "type": "switch",
-        "z": "281e0a510310e9c6",
-        "name": "",
-        "property": "topic",
-        "propertyType": "msg",
-        "rules": [
-            {
-                "t": "eq",
-                "v": "h_20_117",
-                "vt": "str"
-            },
-            {
-                "t": "eq",
-                "v": "h_202_202",
-                "vt": "str"
-            },
-            {
-                "t": "eq",
-                "v": "h_2032_2054",
-                "vt": "str"
-            },
-            {
-                "t": "eq",
-                "v": "i_1300_1304",
-                "vt": "str"
-            },
-            {
-                "t": "eq",
-                "v": "i_2001_2063",
-                "vt": "str"
-            }
-        ],
-        "checkall": "true",
-        "repair": false,
-        "outputs": 5,
-        "x": 730,
-        "y": 640,
-        "wires": [
-            [
-                "386db633a1f7401c"
-            ],
-            [
-                "1b248eea812fabd1"
-            ],
-            [
-                "ed94891d3263d8d9"
-            ],
-            [
-                "aee8f924f8d9a2bc"
-            ],
-            [
-                "a768236db09f5f6b"
-            ]
-        ]
-    },
-    {
-        "id": "03a043caa3e7abbf",
-        "type": "link in",
-        "z": "281e0a510310e9c6",
-        "name": "Read Modbus",
-        "links": [
-            "0820f3d0a0b2721e"
-        ],
-        "x": 445,
-        "y": 700,
-        "wires": [
-            [
-                "9c84627a90a0bb85"
-            ]
-        ]
-    },
-    {
-        "id": "0820f3d0a0b2721e",
-        "type": "link out",
-        "z": "281e0a510310e9c6",
-        "name": "Setup Read",
-        "mode": "link",
-        "links": [
-            "03a043caa3e7abbf"
-        ],
-        "x": 1435,
-        "y": 620,
         "wires": []
     },
     {
@@ -1495,8 +1007,8 @@
             "45a97566b65c65cc",
             "05c0c7b4f59ca88d"
         ],
-        "x": 355,
-        "y": 400,
+        "x": 375,
+        "y": 420,
         "wires": []
     },
     {
@@ -1506,10 +1018,13 @@
         "name": "Set Modbus",
         "showStatusActivities": false,
         "showErrors": false,
+        "showWarnings": true,
         "server": "4a8c3caa0ff9b87d",
         "emptyMsgOnFail": false,
         "keepMsgProperties": false,
-        "x": 570,
+        "delayOnStart": false,
+        "startDelayTime": "",
+        "x": 730,
         "y": 340,
         "wires": [
             [],
@@ -1535,11 +1050,11 @@
         "drop": false,
         "allowrate": false,
         "outputs": 1,
-        "x": 410,
-        "y": 340,
+        "x": 430,
+        "y": 360,
         "wires": [
             [
-                "4402bc5ad5b005a3"
+                "b0b31c3d8d2d0598"
             ]
         ]
     },
@@ -1547,16 +1062,15 @@
         "id": "3f594171d5aa07ab",
         "type": "function",
         "z": "281e0a510310e9c6",
-        "g": "2e3bf4351b6eb1e9",
         "name": "Check Modbus Setting",
-        "func": "var tray = global.get('tray');\nglobal.set('settingInProgress',false);\n\nswitch(msg.payload.address)\n{\n    case 20:\n        tray.startLevelCompressor.value = checkData(msg.payload.value, 1);\n        break;\n    case 21:\n        tray.stopLevelCompressor.value = checkData(msg.payload.value, 1);\n        break;\n    case 22:\n        tray.analogComp0.value = checkData(msg.payload.value, 1);\n        break;\n    case 23:\n        tray.analogComp100.value = checkData(msg.payload.value, 1);\n        break;\n    case 24:\n        tray.startLevelTillsats.value = checkData(msg.payload.value, 1);\n        break;\n    case 30:\n        tray.startTempHeatIn.value = checkData(msg.payload.value, 10);\n        break;\n    case 31:\n        tray.startTempHeatInHy.value = checkData(msg.payload.value, 10);\n        break;\n    case 33:\n        tray.startTempHotWater.value = checkData(msg.payload.value, 10);\n        break;\n    case 34:\n        tray.startTempHotWaterHy.value = checkData(msg.payload.value, 10);\n        break;\n    case 36:\n        tray.solenoidSet.value = checkData(msg.payload.value, 10);\n        break;\n    case 37:\n        tray.solenoidStop.value = checkData(msg.payload.value, 10);\n        break;\n    case 40:\n        tray.curve0C.value = checkData(msg.payload.value, 10);\n        break;\n    case 41:\n        tray.curve20C.value = checkData(msg.payload.value, 10);\n        break;\n    case 45:\n        tray.summerDownDelay.value = checkData(msg.payload.value, 1);\n        break;\n    case 46:\n        tray.summStopTemp.value = checkData(msg.payload.value, 10);\n        break;\n    case 48:\n        tray.minBegrIntro.value = checkData(msg.payload.value, 10);\n        break;\n    case 49:\n        tray.maxBegrIntro.value = checkData(msg.payload.value, 10);\n        break;\n    case 51:\n        tray.defrostBlocking.value = checkData(msg.payload.value, 10);\n        break;\n    case 53:\n        tray.defrostLoadTemp.value = checkData(msg.payload.value, 10);\n        break;\n    case 54:\n        tray.outTempBlock.value = checkData(msg.payload.value, 10);\n        break;\n    case 120:\n        tray.fanSet.value = checkData(msg.payload.value, 1);\n        break;\n    case 124:\n        tray.fanMax.value = checkData(msg.payload.value, 10);\n        break;\n    case 133:\n        tray.LB3ValveMax.value = checkData(msg.payload.value, 10);\n        break;\n    case 134:\n        tray.LB3ValveSet.value = checkData(msg.payload.value, 10);\n        break;\n    case 136:\n        tray.LB3ValveDelay.value = checkData(msg.payload.value, 1);\n        break;\n    case 202:\n        tray.defrostMaxTime.value = checkData(msg.payload.value, 1);\n        break;\n    case 2032:\n        tray.extSetpoint.value = checkData(msg.payload.value, 10);\n        break;\n    case 2033:\n        tray.extOutsideTemp.value = checkData(msg.payload.value, 10);\n        break;\n    case 2054:\n        tray.externalBlocking.value = checkData(msg.payload.value, 1);\n        break;\n    default:\n        break;\n}\nreturn {topic:'settingCompleted', payload:true};\nfunction checkData(rawVal, resolution) \n{\n    let newVal = rawVal;\n    if (newVal > 32767) newVal = newVal - 65536;\n    newVal = newVal / resolution;\n    return newVal;\n}\n\n",
+        "func": "flow.set('settingInProgress',false);\nlet tray = flow.get('tray');\nif (tray[msg.topic].modbus.type == \"holding\") \n{\n    let newVal = msg.payload.value;\n    if (tray[msg.topic].modbus.signed) \n    {\n        if (newVal > 32767) newVal = newVal - 65536;\n    }\n    newVal = newVal / tray[msg.topic].modbus.res;\n    tray[msg.topic].value = newVal;\n    return { topic: 'settingDone', payload: true }\n}\nif (tray[msg.topic].modbus.type == \"coil\") \n{\n    if (msg.payload.state)\n    {\n        tray[msg.topic].value = 1;\n    }\n    else\n    {\n        tray[msg.topic].value = 0;\n    }\n    return { topic: 'settingDone', payload: true }\n}\nreturn { topic: 'settingDone', payload: false }\n",
         "outputs": 1,
         "noerr": 0,
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 780,
-        "y": 340,
+        "x": 980,
+        "y": 360,
         "wires": [
             [
                 "184fe4c567bcfc8d"
@@ -1573,8 +1087,385 @@
             "45a97566b65c65cc",
             "04d132d87ffeb91a"
         ],
-        "x": 935,
-        "y": 340,
+        "x": 1135,
+        "y": 360,
         "wires": []
+    },
+    {
+        "id": "0518bb7bcaf9e999",
+        "type": "inject",
+        "z": "281e0a510310e9c6",
+        "name": "read Status",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "2",
+        "crontab": "",
+        "once": true,
+        "onceDelay": "8",
+        "topic": "readTable",
+        "payload": "",
+        "payloadType": "date",
+        "x": 150,
+        "y": 640,
+        "wires": [
+            [
+                "c59cae41fa3dfa4a"
+            ]
+        ]
+    },
+    {
+        "id": "c59cae41fa3dfa4a",
+        "type": "function",
+        "z": "281e0a510310e9c6",
+        "name": "Setup read Modbus",
+        "func": "if (flow.get('settingInProgress')) return null;\nlet tray = flow.get('tray');\nlet modbusCubes = flow.get('modbusCubes');\nlet modbusMsg = {};\nfor (let icube in modbusCubes) \n{\n    if (tray[modbusCubes[icube]].modbus.type == \"holding\") \n    {\n        modbusMsg[modbusCubes[icube]] = { 'fc': 0x3, 'unitid': 1, 'address': tray[modbusCubes[icube]].modbus.address, 'quantity': 1 };\n    }\n    if (tray[modbusCubes[icube]].modbus.type == \"coil\") \n    {\n        modbusMsg[modbusCubes[icube]] = { 'fc': 0x1, 'unitid': 1, 'address': tray[modbusCubes[icube]].modbus.address, 'quantity': 1 };\n    }\n}\nreturn {topic: \"test\", payload:modbusMsg};",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 350,
+        "y": 640,
+        "wires": [
+            [
+                "df7b35ddf84b179a"
+            ]
+        ]
+    },
+    {
+        "id": "5d5f47a0eaae7c42",
+        "type": "modbus-flex-getter",
+        "z": "281e0a510310e9c6",
+        "name": "Read Modbus ",
+        "showStatusActivities": true,
+        "showErrors": true,
+        "showWarnings": true,
+        "logIOActivities": false,
+        "server": "4a8c3caa0ff9b87d",
+        "useIOFile": false,
+        "ioFile": "",
+        "useIOForPayload": false,
+        "emptyMsgOnFail": false,
+        "keepMsgProperties": false,
+        "delayOnStart": false,
+        "startDelayTime": "",
+        "x": 780,
+        "y": 600,
+        "wires": [
+            [],
+            [
+                "65d1f50db1b29078"
+            ]
+        ]
+    },
+    {
+        "id": "dc484bfd8579f263",
+        "type": "inject",
+        "z": "281e0a510310e9c6",
+        "name": "Test Setting 0",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "setting",
+        "payload": "{\"cube\":\"cube05\",\"value\":0}",
+        "payloadType": "json",
+        "x": 490,
+        "y": 120,
+        "wires": [
+            [
+                "f9be9054ce456982"
+            ]
+        ]
+    },
+    {
+        "id": "df7b35ddf84b179a",
+        "type": "split",
+        "z": "281e0a510310e9c6",
+        "name": "",
+        "splt": "\\n",
+        "spltType": "str",
+        "arraySplt": 1,
+        "arraySpltType": "len",
+        "stream": false,
+        "addname": "topic",
+        "x": 510,
+        "y": 640,
+        "wires": [
+            [
+                "90090457f00968ce"
+            ]
+        ]
+    },
+    {
+        "id": "65d1f50db1b29078",
+        "type": "function",
+        "z": "281e0a510310e9c6",
+        "name": "Parse Reading",
+        "func": "flow.set('settingInProgress',false);\nlet tray = flow.get('tray');\nif (tray[msg.topic].modbus.type == \"holding\") \n{\n    let newVal = msg.payload.data[0];\n    if (tray[msg.topic].modbus.signed) \n    {\n        if (newVal > 32767) newVal = newVal - 65536;\n    }\n    newVal = newVal / tray[msg.topic].modbus.res;\n    tray[msg.topic].value = newVal;\n}\nif (tray[msg.topic].modbus.type == \"coil\") \n{\n    if (msg.payload.data[0])\n    {\n        tray[msg.topic].value = 1;\n    }\n    else\n    {\n        tray[msg.topic].value = 0;\n    }\n}\nlet modbusCubes = flow.get('modbusCubes');\nlet icube = modbusCubes.indexOf(msg.topic);\nif (icube == (modbusCubes.length - 1)) return { topic: 'readingDone', payload: true }\nreturn null;\n",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1040,
+        "y": 640,
+        "wires": [
+            [
+                "99fbe8135d0ce161"
+            ]
+        ]
+    },
+    {
+        "id": "303fe6a9c57e9d67",
+        "type": "modbus-flex-write",
+        "z": "281e0a510310e9c6",
+        "name": "Set Mythical Modbus",
+        "showStatusActivities": false,
+        "showErrors": false,
+        "showWarnings": true,
+        "server": "76465bf5aba36e59",
+        "emptyMsgOnFail": false,
+        "keepMsgProperties": false,
+        "delayOnStart": false,
+        "startDelayTime": "",
+        "x": 1220,
+        "y": 60,
+        "wires": [
+            [],
+            []
+        ]
+    },
+    {
+        "id": "099a4107bd867ee7",
+        "type": "split",
+        "z": "281e0a510310e9c6",
+        "name": "",
+        "splt": "\\n",
+        "spltType": "str",
+        "arraySplt": 1,
+        "arraySpltType": "len",
+        "stream": false,
+        "addname": "",
+        "x": 1050,
+        "y": 60,
+        "wires": [
+            [
+                "303fe6a9c57e9d67"
+            ]
+        ]
+    },
+    {
+        "id": "c2c177727b94f9ba",
+        "type": "modbus-server",
+        "z": "281e0a510310e9c6",
+        "name": "Mythical Slave",
+        "logEnabled": false,
+        "hostname": "127.0.0.1",
+        "serverPort": 10502,
+        "responseDelay": 100,
+        "delayUnit": "ms",
+        "coilsBufferSize": "100",
+        "holdingBufferSize": "10",
+        "inputBufferSize": "100",
+        "discreteBufferSize": "100",
+        "showErrors": false,
+        "x": 1440,
+        "y": 60,
+        "wires": [
+            [],
+            [],
+            [],
+            [],
+            []
+        ]
+    },
+    {
+        "id": "41d1859cfcd19658",
+        "type": "inject",
+        "z": "281e0a510310e9c6",
+        "name": "Test Setting 1",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "setting",
+        "payload": "{\"cube\":\"cube05\",\"value\":1}",
+        "payloadType": "json",
+        "x": 490,
+        "y": 160,
+        "wires": [
+            [
+                "f9be9054ce456982"
+            ]
+        ]
+    },
+    {
+        "id": "695686dff4703418",
+        "type": "inject",
+        "z": "281e0a510310e9c6",
+        "name": "testMode",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": true,
+        "onceDelay": "1",
+        "topic": "testMode",
+        "payload": "TESTMODE",
+        "payloadType": "env",
+        "x": 140,
+        "y": 900,
+        "wires": [
+            [
+                "6af76a294daa96eb"
+            ]
+        ]
+    },
+    {
+        "id": "90090457f00968ce",
+        "type": "switch",
+        "z": "281e0a510310e9c6",
+        "name": "",
+        "property": "testMode",
+        "propertyType": "flow",
+        "rules": [
+            {
+                "t": "eq",
+                "v": "0",
+                "vt": "num"
+            },
+            {
+                "t": "eq",
+                "v": "1",
+                "vt": "num"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 2,
+        "x": 630,
+        "y": 640,
+        "wires": [
+            [
+                "5d5f47a0eaae7c42"
+            ],
+            [
+                "9fa3c606049b206e"
+            ]
+        ]
+    },
+    {
+        "id": "9fa3c606049b206e",
+        "type": "modbus-flex-getter",
+        "z": "281e0a510310e9c6",
+        "name": "Read Modbus Test",
+        "showStatusActivities": true,
+        "showErrors": true,
+        "showWarnings": true,
+        "logIOActivities": false,
+        "server": "76465bf5aba36e59",
+        "useIOFile": false,
+        "ioFile": "",
+        "useIOForPayload": false,
+        "emptyMsgOnFail": false,
+        "keepMsgProperties": false,
+        "delayOnStart": false,
+        "startDelayTime": "",
+        "x": 790,
+        "y": 680,
+        "wires": [
+            [],
+            [
+                "65d1f50db1b29078"
+            ]
+        ]
+    },
+    {
+        "id": "b0b31c3d8d2d0598",
+        "type": "switch",
+        "z": "281e0a510310e9c6",
+        "name": "",
+        "property": "testMode",
+        "propertyType": "flow",
+        "rules": [
+            {
+                "t": "eq",
+                "v": "0",
+                "vt": "num"
+            },
+            {
+                "t": "eq",
+                "v": "1",
+                "vt": "num"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 2,
+        "x": 570,
+        "y": 360,
+        "wires": [
+            [
+                "4402bc5ad5b005a3"
+            ],
+            [
+                "9c75d78c38aa16cb"
+            ]
+        ]
+    },
+    {
+        "id": "9c75d78c38aa16cb",
+        "type": "modbus-flex-write",
+        "z": "281e0a510310e9c6",
+        "name": "Set Modbus Test",
+        "showStatusActivities": false,
+        "showErrors": false,
+        "showWarnings": true,
+        "server": "76465bf5aba36e59",
+        "emptyMsgOnFail": false,
+        "keepMsgProperties": false,
+        "delayOnStart": false,
+        "startDelayTime": "",
+        "x": 750,
+        "y": 400,
+        "wires": [
+            [],
+            [
+                "3f594171d5aa07ab"
+            ]
+        ]
     }
 ]

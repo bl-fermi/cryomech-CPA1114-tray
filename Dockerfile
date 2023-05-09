@@ -7,6 +7,4 @@ COPY flows_cred.json    /app/
 COPY settings.js        /app/
 WORKDIR /app
 RUN npm install
-ENV PM2NAME=blinky-modbus-tray-example-01
-ENV NODEREDCONFIGSECRET=a-secret-key
 CMD ["sh", "-c", "exec node --max-old-space-size=384 node_modules/node-red/red.js -s ./settings.js -u ./"]

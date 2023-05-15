@@ -1,10 +1,11 @@
-MQTTSUBSCRIBE=blinky-box-tutorial/blinky-modbus-tray-example/01/setting/#
 MQTTCLIENTID=blinky-modbus-tray-example-01
+MQTTSUBSCRIBE=blinky-lite-box/blinky-modbus-tray-example/01/setting/#
 MQTTSERVERIP=xxxx.yyyy.com
 MQTTUSERNAME=aaaaa
 MQTTPASSWORD=ppppp
+MQTTPORT=1883
 TESTMODE=1
 MODBUSIP=192.168.0.10
 MODBUSPORT=502
 PM2NAME=blinky-modbus-tray-example-01
-NODEREDCONFIGSECRET=aaaa
+

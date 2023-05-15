@@ -1,4 +1,7 @@
 FROM amd64/node:16.20-alpine3.16
+#FROM arm32v6/node:16.20-alpine3.16
+#FROM arm32v7/node:16.20-alpine3.16
+#FROM arm64v8/node:16.20-alpine3.16
 COPY package.json       /app/
 COPY package-lock.json  /app/
 COPY html-static/       /app/html-static/

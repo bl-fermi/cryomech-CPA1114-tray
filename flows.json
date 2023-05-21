@@ -699,50 +699,6 @@
         ]
     },
     {
-        "id": "6af76a294daa96eb",
-        "type": "function",
-        "z": "281e0a510310e9c6",
-        "name": "Save flow env variables",
-        "func": "flow.set(msg.topic,msg.payload);\nreturn null;",
-        "outputs": 0,
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "libs": [],
-        "x": 350,
-        "y": 1160,
-        "wires": []
-    },
-    {
-        "id": "10e54acd6f4f5fb4",
-        "type": "inject",
-        "z": "281e0a510310e9c6",
-        "name": "pm2Name",
-        "props": [
-            {
-                "p": "payload"
-            },
-            {
-                "p": "topic",
-                "vt": "str"
-            }
-        ],
-        "repeat": "",
-        "crontab": "",
-        "once": true,
-        "onceDelay": "1",
-        "topic": "pm2Name",
-        "payload": "PM2NAME",
-        "payloadType": "env",
-        "x": 150,
-        "y": 1160,
-        "wires": [
-            [
-                "6af76a294daa96eb"
-            ]
-        ]
-    },
-    {
         "id": "985cd59b3e414efe",
         "type": "function",
         "z": "281e0a510310e9c6",
@@ -1241,35 +1197,6 @@
         ]
     },
     {
-        "id": "695686dff4703418",
-        "type": "inject",
-        "z": "281e0a510310e9c6",
-        "name": "testMode",
-        "props": [
-            {
-                "p": "payload"
-            },
-            {
-                "p": "topic",
-                "vt": "str"
-            }
-        ],
-        "repeat": "",
-        "crontab": "",
-        "once": true,
-        "onceDelay": "1",
-        "topic": "testMode",
-        "payload": "TESTMODE",
-        "payloadType": "env",
-        "x": 140,
-        "y": 1120,
-        "wires": [
-            [
-                "6af76a294daa96eb"
-            ]
-        ]
-    },
-    {
         "id": "90090457f00968ce",
         "type": "switch",
         "z": "281e0a510310e9c6",
@@ -1514,6 +1441,50 @@
         "wires": [
             [
                 "1a3f1121b7b0f033"
+            ]
+        ]
+    },
+    {
+        "id": "6af76a294daa96eb",
+        "type": "function",
+        "z": "281e0a510310e9c6",
+        "name": "Save flow env variables",
+        "func": "flow.set(msg.topic,msg.payload);\nreturn null;",
+        "outputs": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 350,
+        "y": 1160,
+        "wires": []
+    },
+    {
+        "id": "695686dff4703418",
+        "type": "inject",
+        "z": "281e0a510310e9c6",
+        "name": "testMode",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": true,
+        "onceDelay": "1",
+        "topic": "testMode",
+        "payload": "TESTMODE",
+        "payloadType": "env",
+        "x": 140,
+        "y": 1160,
+        "wires": [
+            [
+                "6af76a294daa96eb"
             ]
         ]
     }

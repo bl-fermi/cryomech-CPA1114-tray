@@ -20,7 +20,7 @@
 
 module.exports = {
     // the tcp port that the Node-RED web server is listening on
-    uiPort: process.env.PORT || 1880,
+    uiPort: process.env.NODEREDPORT,
 
     // By default, the Node-RED UI accepts connections on all IPv4 interfaces.
     // The following property can be used to listen on a specific interface. For
@@ -118,7 +118,7 @@ module.exports = {
         type: "credentials",
         users: [{
             username: "admin",
-            password: "$2a$12$u6lZPi3UFw3PfFBM4WhgIeynnuQUQT5HgmW03neCtgSkF8bUFWwz6",
+            password: process.env.NODEREDPASSWORD,
             permissions: "*"
         }]
     },
@@ -246,10 +246,10 @@ module.exports = {
          */
         tours: false,
         page: {
-            title: "blinky-modbus-tray"
+            title: process.env.NODEREDLABEL
         },
         header: {
-            title: "blinky-modbus-tray"
+            title: process.env.NODEREDLABEL
          },
     
 

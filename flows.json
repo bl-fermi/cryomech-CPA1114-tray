@@ -191,7 +191,7 @@
         "finalize": "",
         "libs": [],
         "x": 1060,
-        "y": 680,
+        "y": 560,
         "wires": [
             [
                 "099a4107bd867ee7"
@@ -283,103 +283,6 @@
         ]
     },
     {
-        "id": "c0939e4a.6386f",
-        "type": "exec",
-        "z": "281e0a510310e9c6",
-        "command": "pm2 restart ",
-        "addpay": "payload",
-        "append": "",
-        "useSpawn": "false",
-        "timer": "",
-        "winHide": false,
-        "oldrc": false,
-        "name": "Restart",
-        "x": 1540,
-        "y": 500,
-        "wires": [
-            [],
-            [],
-            []
-        ]
-    },
-    {
-        "id": "9e290594.69c548",
-        "type": "switch",
-        "z": "281e0a510310e9c6",
-        "name": "Reset Tray",
-        "property": "payload",
-        "propertyType": "msg",
-        "rules": [
-            {
-                "t": "eq",
-                "v": "1",
-                "vt": "num"
-            },
-            {
-                "t": "eq",
-                "v": "2",
-                "vt": "num"
-            }
-        ],
-        "checkall": "true",
-        "repair": false,
-        "outputs": 2,
-        "x": 1150,
-        "y": 520,
-        "wires": [
-            [
-                "985cd59b3e414efe"
-            ],
-            [
-                "236a8168.66f7fe"
-            ]
-        ]
-    },
-    {
-        "id": "236a8168.66f7fe",
-        "type": "exec",
-        "z": "281e0a510310e9c6",
-        "command": "sudo reboot",
-        "addpay": false,
-        "append": "",
-        "useSpawn": "false",
-        "timer": "",
-        "oldrc": false,
-        "name": "Reboot",
-        "x": 1340,
-        "y": 560,
-        "wires": [
-            [],
-            [],
-            []
-        ]
-    },
-    {
-        "id": "557e4f40.b904e",
-        "type": "delay",
-        "z": "281e0a510310e9c6",
-        "name": "",
-        "pauseType": "delay",
-        "timeout": "2",
-        "timeoutUnits": "seconds",
-        "rate": "1",
-        "nbRateUnits": "1",
-        "rateUnits": "second",
-        "randomFirst": "1",
-        "randomLast": "5",
-        "randomUnits": "seconds",
-        "drop": false,
-        "allowrate": false,
-        "outputs": 1,
-        "x": 1000,
-        "y": 520,
-        "wires": [
-            [
-                "9e290594.69c548"
-            ]
-        ]
-    },
-    {
         "id": "5152879001ec63ea",
         "type": "mqtt out",
         "z": "281e0a510310e9c6",
@@ -452,18 +355,13 @@
             },
             {
                 "t": "eq",
-                "v": "reset",
-                "vt": "str"
-            },
-            {
-                "t": "eq",
                 "v": "echo",
                 "vt": "str"
             }
         ],
         "checkall": "true",
         "repair": false,
-        "outputs": 5,
+        "outputs": 4,
         "x": 670,
         "y": 360,
         "wires": [
@@ -475,9 +373,6 @@
             ],
             [
                 "c81b72b9290d1c36"
-            ],
-            [
-                "72b5ca0e2043aba0"
             ],
             [
                 "39ad45bf078fb562"
@@ -667,53 +562,6 @@
         "wires": [
             [
                 "d74e019a27b1a659"
-            ]
-        ]
-    },
-    {
-        "id": "72b5ca0e2043aba0",
-        "type": "link out",
-        "z": "281e0a510310e9c6",
-        "name": "Reset Out",
-        "links": [
-            "6c366c9b4d8b8f19"
-        ],
-        "x": 775,
-        "y": 420,
-        "wires": []
-    },
-    {
-        "id": "6c366c9b4d8b8f19",
-        "type": "link in",
-        "z": "281e0a510310e9c6",
-        "name": "Reset in",
-        "links": [
-            "72b5ca0e2043aba0"
-        ],
-        "x": 895,
-        "y": 520,
-        "wires": [
-            [
-                "557e4f40.b904e"
-            ]
-        ]
-    },
-    {
-        "id": "985cd59b3e414efe",
-        "type": "function",
-        "z": "281e0a510310e9c6",
-        "name": "Get pm2Name",
-        "func": "msg.payload = flow.get(\"pm2Name\");\nreturn msg;",
-        "outputs": 1,
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "libs": [],
-        "x": 1360,
-        "y": 500,
-        "wires": [
-            [
-                "c0939e4a.6386f"
             ]
         ]
     },
@@ -1117,7 +965,7 @@
         "delayOnStart": false,
         "startDelayTime": "",
         "x": 1420,
-        "y": 680,
+        "y": 560,
         "wires": [
             [],
             []
@@ -1135,7 +983,7 @@
         "stream": false,
         "addname": "",
         "x": 1250,
-        "y": 680,
+        "y": 560,
         "wires": [
             [
                 "303fe6a9c57e9d67"
@@ -1158,7 +1006,7 @@
         "discreteBufferSize": "100",
         "showErrors": false,
         "x": 1640,
-        "y": 680,
+        "y": 560,
         "wires": [
             [],
             [],
@@ -1348,7 +1196,7 @@
             "39ad45bf078fb562"
         ],
         "x": 905,
-        "y": 680,
+        "y": 560,
         "wires": [
             [
                 "30f384ea.cf21fc"
@@ -1365,7 +1213,7 @@
             "ec262633f2adc4fb"
         ],
         "x": 775,
-        "y": 460,
+        "y": 420,
         "wires": []
     },
     {

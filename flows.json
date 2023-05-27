@@ -184,17 +184,20 @@
         "type": "function",
         "z": "281e0a510310e9c6",
         "name": "Save tray config in Memory",
-        "func": "msg.payload.watchdog.value = 0;\nlet tray = msg.payload;\nflow.set('tray', msg.payload);\nlet modbusCubes = [];\nlet modbusSettingCubes = [];\nlet keys = Object.keys(msg.payload)\nfor (let ikey  in keys)\n{\n    if (msg.payload[keys[ikey]].hasOwnProperty('type'))\n    {\n        if (msg.payload[keys[ikey]].hasOwnProperty('modbus')) \n        {\n            modbusCubes.push(keys[ikey]);\n            if (msg.payload[keys[ikey]].action == \"setting\") \n            {\n                modbusSettingCubes.push(keys[ikey]);\n            }\n        }\n    }\n}\nflow.set('modbusCubes', modbusCubes);\nflow.set('modbusSettingCubes', modbusSettingCubes);\nlet modbusMsg = [];\nfor (let icube in modbusCubes) \n{\n    if (tray[modbusCubes[icube]].modbus.type == \"holding\") \n    {\n        let newVal = tray[modbusCubes[icube]].value;\n        newVal = Math.round(newVal * tray[modbusCubes[icube]].modbus.res);\n        if (tray[modbusCubes[icube]].modbus.signed) {\n            if (newVal > 32767) newVal = 32767;\n            if (newVal < -32767) newVal = -32767;\n            if (newVal < 0) newVal = newVal + 65536;\n        }\n        if (newVal < 0) newVal = 0;\n        if (newVal >= 65536) newVal = 65535;\n        modbusMsg.push({ value: newVal, 'fc': 0x6, 'unitid': 1, 'address': tray[modbusCubes[icube]].modbus.address, 'quantity': 1 });\n    }\n    if (tray[modbusCubes[icube]].modbus.type == \"coil\") \n    {\n        let newVal = tray[modbusCubes[icube]].value;\n        modbusMsg.push({ value: newVal, 'fc': 0x5, 'unitid': 1, 'address': tray[modbusCubes[icube]].modbus.address, 'quantity': 1 });\n    }\n}\nreturn { topic: \"modbusConfig\", payload: modbusMsg };\n",
-        "outputs": 1,
+        "func": "msg.payload.watchdog.value = 0;\nlet tray = msg.payload;\nflow.set('tray', msg.payload);\nlet modbusCubes = [];\nlet modbusSettingCubes = [];\nlet keys = Object.keys(msg.payload)\nfor (let ikey  in keys)\n{\n    if (msg.payload[keys[ikey]].hasOwnProperty('type'))\n    {\n        if (msg.payload[keys[ikey]].hasOwnProperty('modbus')) \n        {\n            modbusCubes.push(keys[ikey]);\n            if (msg.payload[keys[ikey]].action == \"setting\") \n            {\n                modbusSettingCubes.push(keys[ikey]);\n            }\n        }\n    }\n}\nflow.set('modbusCubes', modbusCubes);\nflow.set('modbusSettingCubes', modbusSettingCubes);\nlet modbusMsg = [];\nfor (let icube in modbusCubes) \n{\n    if (tray[modbusCubes[icube]].modbus.type == \"holding\") \n    {\n        let newVal = tray[modbusCubes[icube]].value;\n        newVal = Math.round(newVal * tray[modbusCubes[icube]].modbus.res);\n        if (tray[modbusCubes[icube]].modbus.signed) {\n            if (newVal > 32767) newVal = 32767;\n            if (newVal < -32767) newVal = -32767;\n            if (newVal < 0) newVal = newVal + 65536;\n        }\n        if (newVal < 0) newVal = 0;\n        if (newVal >= 65536) newVal = 65535;\n        modbusMsg.push({ value: newVal, 'fc': 0x6, 'unitid': 1, 'address': tray[modbusCubes[icube]].modbus.address, 'quantity': 1 });\n    }\n    if (tray[modbusCubes[icube]].modbus.type == \"coil\") \n    {\n        let newVal = tray[modbusCubes[icube]].value;\n        modbusMsg.push({ value: newVal, 'fc': 0x5, 'unitid': 1, 'address': tray[modbusCubes[icube]].modbus.address, 'quantity': 1 });\n    }\n}\ntray.trayControl.value = 0;\nreturn [{ topic: \"modbusConfig\", payload: modbusMsg },{topic: 'setting', payload:{'cube':'trayControl', value:tray.trayControl.value}}];\n",
+        "outputs": 2,
         "noerr": 0,
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 1060,
-        "y": 560,
+        "x": 920,
+        "y": 480,
         "wires": [
             [
                 "099a4107bd867ee7"
+            ],
+            [
+                "e6028ca70b6042d8"
             ]
         ]
     },
@@ -239,8 +242,8 @@
         "topic": "readTraydesc",
         "payload": "MQTTSUBSCRIBE",
         "payloadType": "env",
-        "x": 960,
-        "y": 360,
+        "x": 880,
+        "y": 100,
         "wires": [
             [
                 "f7b2b73c.569598"
@@ -258,8 +261,8 @@
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 1150,
-        "y": 360,
+        "x": 1070,
+        "y": 100,
         "wires": [
             [
                 "1a3f1121b7b0f033"
@@ -296,39 +299,9 @@
         "correl": "",
         "expiry": "",
         "broker": "79250bf3.365cc4",
-        "x": 1910,
-        "y": 220,
+        "x": 1770,
+        "y": 340,
         "wires": []
-    },
-    {
-        "id": "4493527757138cdc",
-        "type": "link out",
-        "z": "281e0a510310e9c6",
-        "name": "New Setting In",
-        "links": [
-            "4bddb9a0e424ebf4"
-        ],
-        "x": 775,
-        "y": 300,
-        "wires": []
-    },
-    {
-        "id": "4bddb9a0e424ebf4",
-        "type": "link in",
-        "z": "281e0a510310e9c6",
-        "name": "blinkybus setting in",
-        "links": [
-            "4493527757138cdc",
-            "ed0bb779fa7acca6",
-            "0cd853d250156bc1"
-        ],
-        "x": 885,
-        "y": 120,
-        "wires": [
-            [
-                "fcc98447c16c3949"
-            ]
-        ]
     },
     {
         "id": "f9be9054ce456982",
@@ -366,16 +339,16 @@
         "y": 360,
         "wires": [
             [
-                "4493527757138cdc"
+                "fcc98447c16c3949"
             ],
             [
-                "91cded1b31446957"
+                "4cedc086c72eda01"
             ],
             [
-                "c81b72b9290d1c36"
+                "47de6287cc26419f"
             ],
             [
-                "39ad45bf078fb562"
+                "30f384ea.cf21fc"
             ]
         ]
     },
@@ -403,14 +376,14 @@
         "type": "function",
         "z": "281e0a510310e9c6",
         "name": "Publish tray",
-        "func": "if (!msg.payload) return null;\nvar tray = flow.get('tray');\nif (tray == null) return null;\nvar newMsg = \n{\n    topic: flow.get('trayProps').box + '/' + flow.get('trayProps').type + '/' + flow.get('trayProps').name + '/reading',\n    payload: JSON.stringify(tray)\n};\nreturn  newMsg;  \n",
+        "func": "if (msg.topic == 'pause')\n{\n    context.set('pause',msg.payload);\n    return null;\n}\nif (context.get('pause')) return null;\nif (!msg.payload) return null;\nvar tray = flow.get('tray');\nif (tray == null) return null;\nvar newMsg = \n{\n    topic: flow.get('trayProps').box + '/' + flow.get('trayProps').type + '/' + flow.get('trayProps').name + '/reading',\n    payload: JSON.stringify(tray)\n};\nreturn  newMsg;  \n",
         "outputs": 1,
         "noerr": 0,
-        "initialize": "",
+        "initialize": "// Code added here will be run once\n// whenever the node is started.\ncontext.set('pause', false);",
         "finalize": "",
         "libs": [],
-        "x": 1730,
-        "y": 220,
+        "x": 1590,
+        "y": 340,
         "wires": [
             [
                 "5152879001ec63ea"
@@ -434,54 +407,16 @@
             "3fc0261f194a7067",
             "396e4a58f43bbdef",
             "de9724337ab6b427",
-            "184fe4c567bcfc8d"
+            "184fe4c567bcfc8d",
+            "bd491678f8e24259",
+            "974629da19a525ea",
+            "501090a1fd5f88f5"
         ],
-        "x": 1615,
-        "y": 220,
+        "x": 1475,
+        "y": 340,
         "wires": [
             [
                 "f75b9887786b11c4"
-            ]
-        ]
-    },
-    {
-        "id": "91cded1b31446957",
-        "type": "link out",
-        "z": "281e0a510310e9c6",
-        "name": "Ping Out",
-        "links": [
-            "45a97566b65c65cc",
-            "05c0c7b4f59ca88d"
-        ],
-        "x": 775,
-        "y": 340,
-        "wires": []
-    },
-    {
-        "id": "c81b72b9290d1c36",
-        "type": "link out",
-        "z": "281e0a510310e9c6",
-        "name": "Config Out",
-        "links": [
-            "720ccfb4b4949146"
-        ],
-        "x": 775,
-        "y": 380,
-        "wires": []
-    },
-    {
-        "id": "720ccfb4b4949146",
-        "type": "link in",
-        "z": "281e0a510310e9c6",
-        "name": "Pause Tray Readings in",
-        "links": [
-            "c81b72b9290d1c36"
-        ],
-        "x": 885,
-        "y": 240,
-        "wires": [
-            [
-                "47de6287cc26419f"
             ]
         ]
     },
@@ -490,33 +425,19 @@
         "type": "function",
         "z": "281e0a510310e9c6",
         "name": "Save config file",
-        "func": "let cubeAlarm = flow.get('tray')[msg.payload.cube].alarm;\ncubeAlarm.limits.lolo = msg.payload.limits.lolo;\ncubeAlarm.limits.low  = msg.payload.limits.low;\ncubeAlarm.limits.high = msg.payload.limits.high;\ncubeAlarm.limits.hihi = msg.payload.limits.hihi;\ncubeAlarm.notify.name = msg.payload.notify.name;\ncubeAlarm.notify.number = msg.payload.notify.number;\nreturn {topic:'trayConfigCompleted', payload:true};",
+        "func": "let cubeAlarm = flow.get('tray')[msg.payload.cube].alarm;\ncubeAlarm.limits.lolo = msg.payload.limits.lolo;\ncubeAlarm.limits.low  = msg.payload.limits.low;\ncubeAlarm.limits.high = msg.payload.limits.high;\ncubeAlarm.limits.hihi = msg.payload.limits.hihi;\ncubeAlarm.notify.name = msg.payload.notify.name;\ncubeAlarm.notify.number = msg.payload.notify.number;\nreturn { topic: 'newData', payload: true };",
         "outputs": 1,
         "noerr": 0,
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 1010,
-        "y": 240,
+        "x": 880,
+        "y": 400,
         "wires": [
             [
-                "501090a1fd5f88f5",
-                "df03212a7e41deb1"
+                "501090a1fd5f88f5"
             ]
         ]
-    },
-    {
-        "id": "df03212a7e41deb1",
-        "type": "link out",
-        "z": "281e0a510310e9c6",
-        "name": "Continue Devie Readings out",
-        "links": [
-            "45a97566b65c65cc",
-            "05c0c7b4f59ca88d"
-        ],
-        "x": 1155,
-        "y": 220,
-        "wires": []
     },
     {
         "id": "c2d22bcc1f4cf7b0",
@@ -539,7 +460,7 @@
         "topic": "archiveClock",
         "payloadType": "date",
         "x": 160,
-        "y": 1000,
+        "y": 820,
         "wires": [
             [
                 "6a9b2f2af2f7d084"
@@ -558,7 +479,7 @@
         "finalize": "",
         "libs": [],
         "x": 370,
-        "y": 1000,
+        "y": 820,
         "wires": [
             [
                 "d74e019a27b1a659"
@@ -586,7 +507,7 @@
         "topic": "archiveNow",
         "payloadType": "date",
         "x": 150,
-        "y": 1060,
+        "y": 880,
         "wires": [
             [
                 "76d6712bed883108"
@@ -605,7 +526,7 @@
         "finalize": "",
         "libs": [],
         "x": 350,
-        "y": 1060,
+        "y": 880,
         "wires": [
             [
                 "d74e019a27b1a659"
@@ -618,10 +539,11 @@
         "z": "281e0a510310e9c6",
         "name": "Save config file out",
         "links": [
-            "04d132d87ffeb91a"
+            "04d132d87ffeb91a",
+            "45a97566b65c65cc"
         ],
-        "x": 1155,
-        "y": 260,
+        "x": 1035,
+        "y": 400,
         "wires": []
     },
     {
@@ -639,7 +561,7 @@
         "expiry": "",
         "broker": "79250bf3.365cc4",
         "x": 780,
-        "y": 1000,
+        "y": 820,
         "wires": []
     },
     {
@@ -654,7 +576,7 @@
         "finalize": "",
         "libs": [],
         "x": 590,
-        "y": 1000,
+        "y": 820,
         "wires": [
             [
                 "45409b1230e854cd"
@@ -666,20 +588,23 @@
         "type": "function",
         "z": "281e0a510310e9c6",
         "name": "Create Setting",
-        "func": "let tray = flow.get('tray');\nif (tray == null) return [null,null]\nlet modbusSettingCubes = flow.get('modbusSettingCubes');\nlet icube = modbusSettingCubes.indexOf(msg.payload.cube);\n\nif (icube >= 0)\n{\n    let modbusMsg = null;\n    if (tray[modbusSettingCubes[icube]].modbus.type == \"holding\") \n    {\n        let newVal = msg.payload.value;\n        newVal = Math.round(newVal * tray[modbusSettingCubes[icube]].modbus.res);\n        if (tray[modbusSettingCubes[icube]].modbus.signed) {\n            if (newVal > 32767) newVal = 32767;\n            if (newVal < -32767) newVal = -32767;\n            if (newVal < 0) newVal = newVal + 65536;\n        }\n        if (newVal < 0) newVal = 0;\n        if (newVal >= 65536) newVal = 65535;\n        modbusMsg = { topic: modbusSettingCubes[icube], payload:{ value: newVal, 'fc': 0x6, 'unitid': 1, 'address': tray[modbusSettingCubes[icube]].modbus.address, 'quantity': 1 }};\n    }\n    if (tray[modbusSettingCubes[icube]].modbus.type == \"coil\") \n    {\n        let newVal = msg.payload.value;\n        modbusMsg = { topic: modbusSettingCubes[icube], payload:{ value: newVal, 'fc': 0x5, 'unitid': 1, 'address': tray[modbusSettingCubes[icube]].modbus.address, 'quantity': 1 }};\n    }\n    if (modbusMsg != null) flow.set('settingInProgress', true);\n    return [modbusMsg, null];\n}\n\nswitch (msg.payload.cube) \n{\n    case 'alias':\n        tray.alias.value = msg.payload.value;\n       break;\n    default:\n        break;\n}\nreturn [null, { topic: 'settingDone', payload: true }];\n",
-        "outputs": 2,
+        "func": "let modBusSettingMsg = null;\nlet normalSettingMsg = null;\nlet trayControlMessage = null;\nlet tray = flow.get('tray');\nif (tray == null) return [modBusSettingMsg,normalSettingMsg,trayControlMessage];\nlet modbusSettingCubes = flow.get('modbusSettingCubes');\nlet icube = modbusSettingCubes.indexOf(msg.payload.cube);\n\nif (icube >= 0)\n{\n    if (tray[modbusSettingCubes[icube]].modbus.type == \"holding\") \n    {\n        let newVal = msg.payload.value;\n        newVal = Math.round(newVal * tray[modbusSettingCubes[icube]].modbus.res);\n        if (tray[modbusSettingCubes[icube]].modbus.signed) {\n            if (newVal > 32767) newVal = 32767;\n            if (newVal < -32767) newVal = -32767;\n            if (newVal < 0) newVal = newVal + 65536;\n        }\n        if (newVal < 0) newVal = 0;\n        if (newVal >= 65536) newVal = 65535;\n        modBusSettingMsg = { topic: modbusSettingCubes[icube], payload:{ value: newVal, 'fc': 0x6, 'unitid': 1, 'address': tray[modbusSettingCubes[icube]].modbus.address, 'quantity': 1 }};\n    }\n    if (tray[modbusSettingCubes[icube]].modbus.type == \"coil\") \n    {\n        let newVal = msg.payload.value;\n        modBusSettingMsg = { topic: modbusSettingCubes[icube], payload:{ value: newVal, 'fc': 0x5, 'unitid': 1, 'address': tray[modbusSettingCubes[icube]].modbus.address, 'quantity': 1 }};\n    }\n    if (modBusSettingMsg != null) flow.set('settingInProgress', true);\n    return [modBusSettingMsg,normalSettingMsg,trayControlMessage];\n}\n\nswitch (msg.payload.cube) \n{\n    case 'alias':\n        tray.alias.value = msg.payload.value;\n        normalSettingMsg = { topic: 'newData', payload: true };\n       break;\n    case 'trayControl':\n        switch(msg.payload.value)\n        {\n            case 0:\n                tray.trayControl.value = 0;\n                break;\n            case 1:\n                tray.trayControl.value = 1;\n                break;\n            case 2:\n                if (tray.trayControl.value > 0)\n                {\n                    tray.trayControl.value = 2;\n                }\n                break;\n            default:\n                tray.trayControl.value = 0;\n                break;\n        }\n        normalSettingMsg = { topic: 'newData', payload: true };\n        trayControlMessage = { topic: 'trayControl', payload: tray.trayControl.value };\n       break;\n    default:\n        break;\n}\nflow.set('settingInProgress', false);\nreturn [modBusSettingMsg,normalSettingMsg,trayControlMessage];\n",
+        "outputs": 3,
         "noerr": 0,
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 1030,
-        "y": 120,
+        "x": 880,
+        "y": 260,
         "wires": [
             [
                 "3744a97333f32473"
             ],
             [
                 "de9724337ab6b427"
+            ],
+            [
+                "6c29d83d29cb0f0b"
             ]
         ]
     },
@@ -695,7 +620,7 @@
         "finalize": "",
         "libs": [],
         "x": 1260,
-        "y": 840,
+        "y": 660,
         "wires": [
             [
                 "f5d0568e288098ed"
@@ -712,7 +637,7 @@
             "05c0c7b4f59ca88d"
         ],
         "x": 1435,
-        "y": 840,
+        "y": 660,
         "wires": []
     },
     {
@@ -726,8 +651,8 @@
             "45a97566b65c65cc",
             "05c0c7b4f59ca88d"
         ],
-        "x": 1185,
-        "y": 160,
+        "x": 1035,
+        "y": 260,
         "wires": []
     },
     {
@@ -743,8 +668,8 @@
         "keepMsgProperties": false,
         "delayOnStart": false,
         "startDelayTime": "",
-        "x": 1540,
-        "y": 80,
+        "x": 1390,
+        "y": 200,
         "wires": [
             [],
             [
@@ -769,8 +694,8 @@
         "drop": false,
         "allowrate": false,
         "outputs": 1,
-        "x": 1240,
-        "y": 100,
+        "x": 1090,
+        "y": 220,
         "wires": [
             [
                 "b0b31c3d8d2d0598"
@@ -782,14 +707,14 @@
         "type": "function",
         "z": "281e0a510310e9c6",
         "name": "Check Modbus Setting",
-        "func": "flow.set('settingInProgress',false);\nlet tray = flow.get('tray');\nif (tray == null) return null;\nif (tray[msg.topic].modbus.type == \"holding\") \n{\n    let newVal = msg.payload.value;\n    if (tray[msg.topic].modbus.signed) \n    {\n        if (newVal > 32767) newVal = newVal - 65536;\n    }\n    newVal = newVal / tray[msg.topic].modbus.res;\n    tray[msg.topic].value = newVal;\n    return { topic: 'settingDone', payload: true }\n}\nif (tray[msg.topic].modbus.type == \"coil\") \n{\n    if (msg.payload.state)\n    {\n        tray[msg.topic].value = 1;\n    }\n    else\n    {\n        tray[msg.topic].value = 0;\n    }\n    return { topic: 'settingDone', payload: true }\n}\nreturn { topic: 'settingDone', payload: false }\n",
+        "func": "flow.set('settingInProgress',false);\nlet tray = flow.get('tray');\nif (tray == null) return null;\nif (tray[msg.topic].modbus.type == \"holding\") \n{\n    let newVal = msg.payload.value;\n    if (tray[msg.topic].modbus.signed) \n    {\n        if (newVal > 32767) newVal = newVal - 65536;\n    }\n    newVal = newVal / tray[msg.topic].modbus.res;\n    tray[msg.topic].value = newVal;\n    return { topic: 'newData', payload: true };\n}\nif (tray[msg.topic].modbus.type == \"coil\") \n{\n    if (msg.payload.state)\n    {\n        tray[msg.topic].value = 1;\n    }\n    else\n    {\n        tray[msg.topic].value = 0;\n    }\n    return { topic: 'newData', payload: true };\n}\nreturn { topic: 'newData', payload: false }\n",
         "outputs": 1,
         "noerr": 0,
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 1790,
-        "y": 100,
+        "x": 1640,
+        "y": 220,
         "wires": [
             [
                 "184fe4c567bcfc8d"
@@ -806,8 +731,8 @@
             "45a97566b65c65cc",
             "04d132d87ffeb91a"
         ],
-        "x": 1975,
-        "y": 100,
+        "x": 1825,
+        "y": 220,
         "wires": []
     },
     {
@@ -832,7 +757,7 @@
         "payload": "",
         "payloadType": "date",
         "x": 150,
-        "y": 840,
+        "y": 660,
         "wires": [
             [
                 "c59cae41fa3dfa4a"
@@ -851,7 +776,7 @@
         "finalize": "",
         "libs": [],
         "x": 350,
-        "y": 840,
+        "y": 660,
         "wires": [
             [
                 "df7b35ddf84b179a"
@@ -876,7 +801,7 @@
         "delayOnStart": false,
         "startDelayTime": "",
         "x": 780,
-        "y": 800,
+        "y": 620,
         "wires": [
             [],
             [
@@ -925,7 +850,7 @@
         "stream": false,
         "addname": "topic",
         "x": 510,
-        "y": 840,
+        "y": 660,
         "wires": [
             [
                 "90090457f00968ce"
@@ -944,7 +869,7 @@
         "finalize": "",
         "libs": [],
         "x": 1040,
-        "y": 840,
+        "y": 660,
         "wires": [
             [
                 "99fbe8135d0ce161"
@@ -964,8 +889,8 @@
         "keepMsgProperties": false,
         "delayOnStart": false,
         "startDelayTime": "",
-        "x": 1420,
-        "y": 560,
+        "x": 1280,
+        "y": 480,
         "wires": [
             [],
             []
@@ -982,8 +907,8 @@
         "arraySpltType": "len",
         "stream": false,
         "addname": "",
-        "x": 1250,
-        "y": 560,
+        "x": 1110,
+        "y": 480,
         "wires": [
             [
                 "303fe6a9c57e9d67"
@@ -1005,8 +930,8 @@
         "inputBufferSize": "100",
         "discreteBufferSize": "100",
         "showErrors": false,
-        "x": 1640,
-        "y": 560,
+        "x": 1500,
+        "y": 480,
         "wires": [
             [],
             [],
@@ -1067,7 +992,7 @@
         "repair": false,
         "outputs": 2,
         "x": 630,
-        "y": 840,
+        "y": 660,
         "wires": [
             [
                 "5d5f47a0eaae7c42"
@@ -1095,7 +1020,7 @@
         "delayOnStart": false,
         "startDelayTime": "",
         "x": 790,
-        "y": 880,
+        "y": 700,
         "wires": [
             [],
             [
@@ -1125,8 +1050,8 @@
         "checkall": "true",
         "repair": false,
         "outputs": 2,
-        "x": 1380,
-        "y": 100,
+        "x": 1230,
+        "y": 220,
         "wires": [
             [
                 "4402bc5ad5b005a3"
@@ -1149,8 +1074,8 @@
         "keepMsgProperties": false,
         "delayOnStart": false,
         "startDelayTime": "",
-        "x": 1560,
-        "y": 140,
+        "x": 1410,
+        "y": 260,
         "wires": [
             [],
             [
@@ -1167,8 +1092,8 @@
         "links": [
             "f882c2407b2620be"
         ],
-        "x": 1615,
-        "y": 280,
+        "x": 1575,
+        "y": 40,
         "wires": []
     },
     {
@@ -1179,42 +1104,13 @@
         "links": [
             "063def90cca3eae3"
         ],
-        "x": 1785,
+        "x": 1625,
         "y": 280,
         "wires": [
             [
                 "5152879001ec63ea"
             ]
         ]
-    },
-    {
-        "id": "ec262633f2adc4fb",
-        "type": "link in",
-        "z": "281e0a510310e9c6",
-        "name": "save tray in",
-        "links": [
-            "39ad45bf078fb562"
-        ],
-        "x": 905,
-        "y": 560,
-        "wires": [
-            [
-                "30f384ea.cf21fc"
-            ]
-        ]
-    },
-    {
-        "id": "39ad45bf078fb562",
-        "type": "link out",
-        "z": "281e0a510310e9c6",
-        "name": "echo out",
-        "mode": "link",
-        "links": [
-            "ec262633f2adc4fb"
-        ],
-        "x": 775,
-        "y": 420,
-        "wires": []
     },
     {
         "id": "1a3f1121b7b0f033",
@@ -1227,8 +1123,8 @@
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 1440,
-        "y": 360,
+        "x": 1360,
+        "y": 100,
         "wires": [
             [
                 "063def90cca3eae3"
@@ -1255,8 +1151,8 @@
         "drop": false,
         "allowrate": false,
         "outputs": 1,
-        "x": 1720,
-        "y": 340,
+        "x": 1620,
+        "y": 120,
         "wires": [
             [
                 "175febc97e8ae24a"
@@ -1272,8 +1168,8 @@
         "links": [
             "2545c4a66f386231"
         ],
-        "x": 1825,
-        "y": 400,
+        "x": 1755,
+        "y": 40,
         "wires": []
     },
     {
@@ -1284,11 +1180,268 @@
         "links": [
             "175febc97e8ae24a"
         ],
-        "x": 1305,
-        "y": 400,
+        "x": 1205,
+        "y": 40,
         "wires": [
             [
                 "1a3f1121b7b0f033"
+            ]
+        ]
+    },
+    {
+        "id": "f5153c8898e1a608",
+        "type": "link in",
+        "z": "281e0a510310e9c6",
+        "name": "trayControl In",
+        "links": [
+            "6c29d83d29cb0f0b"
+        ],
+        "x": 965,
+        "y": 880,
+        "wires": [
+            [
+                "deafd5da1e8f46c9"
+            ]
+        ]
+    },
+    {
+        "id": "9fbf97ecc4d18acc",
+        "type": "switch",
+        "z": "281e0a510310e9c6",
+        "name": "",
+        "property": "payload",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "eq",
+                "v": "0",
+                "vt": "num"
+            },
+            {
+                "t": "eq",
+                "v": "1",
+                "vt": "num"
+            },
+            {
+                "t": "eq",
+                "v": "2",
+                "vt": "num"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 3,
+        "x": 1220,
+        "y": 880,
+        "wires": [
+            [
+                "4a0a885762d17331"
+            ],
+            [
+                "0f253bd93a3c0393"
+            ],
+            [
+                "441ab0c24a72693f"
+            ]
+        ]
+    },
+    {
+        "id": "deafd5da1e8f46c9",
+        "type": "delay",
+        "z": "281e0a510310e9c6",
+        "name": "",
+        "pauseType": "delay",
+        "timeout": "1",
+        "timeoutUnits": "seconds",
+        "rate": "1",
+        "nbRateUnits": "1",
+        "rateUnits": "second",
+        "randomFirst": "1",
+        "randomLast": "5",
+        "randomUnits": "seconds",
+        "drop": false,
+        "allowrate": false,
+        "outputs": 1,
+        "x": 1070,
+        "y": 880,
+        "wires": [
+            [
+                "9fbf97ecc4d18acc"
+            ]
+        ]
+    },
+    {
+        "id": "4a0a885762d17331",
+        "type": "function",
+        "z": "281e0a510310e9c6",
+        "name": "Resume Publish",
+        "func": "return {topic:'pause',payload:false};",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1410,
+        "y": 820,
+        "wires": [
+            [
+                "974629da19a525ea"
+            ]
+        ]
+    },
+    {
+        "id": "0f253bd93a3c0393",
+        "type": "function",
+        "z": "281e0a510310e9c6",
+        "name": "Stop Publish",
+        "func": "return {topic:'pause',payload:true};",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1400,
+        "y": 860,
+        "wires": [
+            [
+                "974629da19a525ea"
+            ]
+        ]
+    },
+    {
+        "id": "974629da19a525ea",
+        "type": "link out",
+        "z": "281e0a510310e9c6",
+        "name": "publish control out",
+        "mode": "link",
+        "links": [
+            "e90864c178e3c08e",
+            "45a97566b65c65cc"
+        ],
+        "x": 1565,
+        "y": 840,
+        "wires": []
+    },
+    {
+        "id": "441ab0c24a72693f",
+        "type": "function",
+        "z": "281e0a510310e9c6",
+        "name": "Reload tray",
+        "func": "return {topic:\"readTraydesc\",payload:env.get(\"MQTTSUBSCRIBE\")};",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1400,
+        "y": 900,
+        "wires": [
+            [
+                "961510dc1e7a036a"
+            ]
+        ]
+    },
+    {
+        "id": "961510dc1e7a036a",
+        "type": "link out",
+        "z": "281e0a510310e9c6",
+        "name": "reload trays out",
+        "mode": "link",
+        "links": [
+            "bad294b12342c555"
+        ],
+        "x": 1565,
+        "y": 900,
+        "wires": []
+    },
+    {
+        "id": "4cedc086c72eda01",
+        "type": "function",
+        "z": "281e0a510310e9c6",
+        "name": "prep ping",
+        "func": "return {topic:'newData', payload:true};",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 860,
+        "y": 340,
+        "wires": [
+            [
+                "bd491678f8e24259"
+            ]
+        ]
+    },
+    {
+        "id": "bd491678f8e24259",
+        "type": "link out",
+        "z": "281e0a510310e9c6",
+        "name": "ping out",
+        "mode": "link",
+        "links": [
+            "e90864c178e3c08e",
+            "45a97566b65c65cc"
+        ],
+        "x": 1035,
+        "y": 340,
+        "wires": []
+    },
+    {
+        "id": "21ead1f81b53e80b",
+        "type": "link in",
+        "z": "281e0a510310e9c6",
+        "name": "setting switch in",
+        "links": [
+            "e6028ca70b6042d8"
+        ],
+        "x": 545,
+        "y": 420,
+        "wires": [
+            [
+                "f9be9054ce456982"
+            ]
+        ]
+    },
+    {
+        "id": "e6028ca70b6042d8",
+        "type": "link out",
+        "z": "281e0a510310e9c6",
+        "name": "save tray config out",
+        "mode": "link",
+        "links": [
+            "21ead1f81b53e80b"
+        ],
+        "x": 1085,
+        "y": 540,
+        "wires": []
+    },
+    {
+        "id": "6c29d83d29cb0f0b",
+        "type": "link out",
+        "z": "281e0a510310e9c6",
+        "name": "trayControl Out",
+        "mode": "link",
+        "links": [
+            "f5153c8898e1a608"
+        ],
+        "x": 1035,
+        "y": 300,
+        "wires": []
+    },
+    {
+        "id": "bad294b12342c555",
+        "type": "link in",
+        "z": "281e0a510310e9c6",
+        "name": "Init flow variables in",
+        "links": [
+            "961510dc1e7a036a"
+        ],
+        "x": 925,
+        "y": 140,
+        "wires": [
+            [
+                "f7b2b73c.569598"
             ]
         ]
     },
@@ -1304,7 +1457,7 @@
         "finalize": "",
         "libs": [],
         "x": 350,
-        "y": 1160,
+        "y": 100,
         "wires": []
     },
     {
@@ -1329,7 +1482,7 @@
         "payload": "TESTMODE",
         "payloadType": "env",
         "x": 140,
-        "y": 1160,
+        "y": 100,
         "wires": [
             [
                 "6af76a294daa96eb"

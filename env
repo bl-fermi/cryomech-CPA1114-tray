@@ -1,5 +1,5 @@
-MQTTCLIENTID=blinky-modbus-tray-01
-MQTTSUBSCRIBE=blinky-lite-box/blinky-modbus-tray/01/setting/#
+MQTTCLIENTID=blinky-modbus-01
+MQTTSUBSCRIBE=blinky-lite-box/blinky-modbus/01/setting/#
 MQTTSERVERIP=xxxx.yyyy.com
 MQTTUSERNAME=aaaaa
 MQTTPASSWORD=ppppp

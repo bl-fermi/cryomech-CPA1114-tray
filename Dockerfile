@@ -9,5 +9,8 @@ COPY flows.json         /app/
 COPY flows_cred.json    /app/
 COPY settings.js        /app/
 WORKDIR /app
+ENV NODEREDLABEL=blinky-modbus-tray
+ENV NODEREDPORT=1880
+ENV ENABLE_NODERED_EDITOR=0
 RUN npm install
 CMD ["sh", "-c", "exec node --max-old-space-size=384 node_modules/node-red/red.js -s ./settings.js -u ./"]

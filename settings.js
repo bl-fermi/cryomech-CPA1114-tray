@@ -118,7 +118,7 @@ module.exports = {
         type: "credentials",
         users: [{
             username: "admin",
-            password: process.env.NODEREDPASSWORD,
+            password: "$2a$12$u6lZPi3UFw3PfFBM4WhgIeynnuQUQT5HgmW03neCtgSkF8bUFWwz6",
             permissions: "*"
         }]
     },
@@ -148,7 +148,8 @@ module.exports = {
     // The following property can be used to disable the editor. The admin API
     // is not affected by this option. To disable both the editor and the admin
     // API, use either the httpRoot or httpAdminRoot properties
-    //disableEditor: false,
+    disableEditor: (process.env.ENABLE_NODERED_EDITOR === '0'),
+//    disableEditor: false,
 
     // The following property can be used to configure cross-origin resource sharing
     // in the HTTP nodes.

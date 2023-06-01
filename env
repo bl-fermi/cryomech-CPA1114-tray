@@ -8,5 +8,5 @@ TESTMODE=1
 MODBUSIP=192.168.0.10
 MODBUSPORT=502
 NODEREDLABEL=blinky-modbus-tray
-NODEREDPASSWORD=$2a.......................................................z6
 NODEREDPORT=1880
+ENABLE_NODERED_EDITOR=1

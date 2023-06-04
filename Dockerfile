@@ -1,16 +1,10 @@
-FROM amd64/node:16.20-alpine3.16
-#FROM arm32v6/node:16.20-alpine3.16
-#FROM arm32v7/node:16.20-alpine3.16
-#FROM arm64v8/node:16.20-alpine3.16
-COPY package.json       /app/
-COPY package-lock.json  /app/
-COPY html-static/       /app/html-static/
-COPY flows.json         /app/
-COPY flows_cred.json    /app/
-COPY settings.js        /app/
-WORKDIR /app
+FROM nodered/node-red:3.0.2-16
+COPY flows.json         /data/flows.json
+COPY flows_cred.json    /data/flows_cred.json
+COPY settings.js        /data/settings.js
+WORKDIR /usr/src/node-red
+RUN npm install node-red-contrib-modbus@5.26.0
+RUN npm install node-red-dashboard@3.4.0
 ENV NODEREDLABEL=blinky-modbus-tray
 ENV NODEREDPORT=1880
 ENV ENABLE_NODERED_EDITOR=0
-RUN npm install
-CMD ["sh", "-c", "exec node --max-old-space-size=384 node_modules/node-red/red.js -s ./settings.js -u ./"]

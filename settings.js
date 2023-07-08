@@ -118,7 +118,7 @@ module.exports = {
         type: "credentials",
         users: [{
             username: "admin",
-            password: "$2a$12$u6lZPi3UFw3PfFBM4WhgIeynnuQUQT5HgmW03neCtgSkF8bUFWwz6",
+            password: "$2a$12$hP3fo1e/LdB3Uboipn7laeVhiRPmPcM7ockFdIJ/gK7XMmW8GlKiy",
             permissions: "*"
         }]
     },
@@ -240,17 +240,17 @@ module.exports = {
          * See https://github.com/node-red-contrib-themes/theme-collection for
          * a collection of themes to chose from.
          */
-        //theme: "",
+        theme: "dark-scroll",
 
         /** To disable the 'Welcome to Node-RED' tour that is displayed the first
          * time you access the editor for each release of Node-RED, set this to false
          */
         tours: false,
         page: {
-            title: process.env.NODEREDLABEL
+            title: "blinky-modbus-tray"
         },
         header: {
-            title: process.env.NODEREDLABEL
+            title: "blinky-modbus-tray"
          },
     
 
@@ -281,7 +281,7 @@ module.exports = {
             lib: "monaco",
             options: 
             {
-                theme: "vs",
+//                theme: "vs",
                 formatOnType: false,
                 formatOnPaste: false,
                 useTabStops: true,

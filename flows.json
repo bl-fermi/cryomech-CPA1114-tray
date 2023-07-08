@@ -206,13 +206,13 @@
         "type": "mqtt in",
         "z": "281e0a510310e9c6",
         "name": "Subscribe Settings",
-        "topic": "$(MQTTSUBSCRIBE)",
+        "topic": "",
         "qos": "0",
         "datatype": "auto",
         "broker": "79250bf3.365cc4",
         "nl": false,
         "rap": false,
-        "inputs": 0,
+        "inputs": 1,
         "x": 150,
         "y": 360,
         "wires": [
@@ -225,7 +225,7 @@
         "id": "49c7b59e.00e86c",
         "type": "inject",
         "z": "281e0a510310e9c6",
-        "name": "read Tray",
+        "name": "initFlow",
         "props": [
             {
                 "p": "payload"
@@ -238,11 +238,11 @@
         "repeat": "",
         "crontab": "",
         "once": true,
-        "onceDelay": "2",
-        "topic": "readTraydesc",
-        "payload": "MQTTSUBSCRIBE",
-        "payloadType": "env",
-        "x": 880,
+        "onceDelay": "1",
+        "topic": "initFlow",
+        "payload": "",
+        "payloadType": "date",
+        "x": 140,
         "y": 100,
         "wires": [
             [
@@ -255,17 +255,18 @@
         "type": "function",
         "z": "281e0a510310e9c6",
         "name": "Init flow Variables",
-        "func": "var mqttSplit = msg.payload.split('/');\nvar trayProps = {\n    box         :   mqttSplit[0],\n    type        :   mqttSplit[1],\n    name        :   mqttSplit[2],\n};\nflow.set('trayProps',trayProps);\nflow.set('settingInProgress', false);\nflow.set('tray', null);\nreturn {topic: \"getTrayProps\", payload: true};  \n",
+        "func": "var trayProps = {\n    box         :   env.get(\"BOX\"),\n    type        :   env.get(\"TRAYTYPE\"),\n    name        :   env.get(\"TRAYNAME\"),\n};\nflow.set(\"testMode\",env.get(\"TESTMODE\"));\nflow.set('trayProps',trayProps);\nflow.set('settingInProgress', false);\nflow.set('tray', null);\nreturn {topic: \"getTrayProps\", payload: true};  \n",
         "outputs": 1,
         "noerr": 0,
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 1070,
+        "x": 330,
         "y": 100,
         "wires": [
             [
-                "1a3f1121b7b0f033"
+                "d3215282604f589f",
+                "a1ac9e631b1c38ed"
             ]
         ]
     },
@@ -357,7 +358,7 @@
         "type": "function",
         "z": "281e0a510310e9c6",
         "name": "Filter MQTT",
-        "func": "return {topic:msg.topic.split('/')[4], payload:msg.payload};",
+        "func": "return {topic:msg.topic.split('/')[5], payload:msg.payload};",
         "outputs": 1,
         "noerr": 0,
         "initialize": "",
@@ -376,7 +377,7 @@
         "type": "function",
         "z": "281e0a510310e9c6",
         "name": "Publish tray",
-        "func": "if (!msg.payload) return null;\nvar tray = flow.get('tray');\nif (tray == null) return null;\nlet newMsg = null;\nlet newMsgTopic = flow.get('trayProps').box + '/' + flow.get('trayProps').type + '/' + flow.get('trayProps').name + '/reading';\nswitch( tray.trayControl.value)\n{\n    case 0:\n        newMsg = {topic: newMsgTopic, payload: JSON.stringify(tray)};\n        break;\n    case -1:\n        tray.trayControl.value = 1;\n        newMsg = {topic: newMsgTopic, payload: JSON.stringify(tray)};\n        break;\n    default:\n        break;\n}\nreturn newMsg;\n",
+        "func": "if (!msg.payload) return null;\nvar tray = flow.get('tray');\nif (tray == null) return null;\nlet newMsg = null;\nlet newMsgTopic = flow.get('trayProps').box + '/tray/' + flow.get('trayProps').type + '/' + flow.get('trayProps').name + '/reading';\nswitch( tray.trayControl.value)\n{\n    case 0:\n        newMsg = {topic: newMsgTopic, payload: JSON.stringify(tray)};\n        break;\n    case -1:\n        tray.trayControl.value = 1;\n        newMsg = {topic: newMsgTopic, payload: JSON.stringify(tray)};\n        break;\n    default:\n        break;\n}\nreturn newMsg;\n",
         "outputs": 1,
         "noerr": 0,
         "initialize": "",
@@ -569,7 +570,7 @@
         "type": "function",
         "z": "281e0a510310e9c6",
         "name": "Publish tray",
-        "func": "if (!msg.payload) return null;\nvar tray = flow.get('tray');\nif (tray == null) return null;\nvar newMsg = \n{\n    topic: flow.get('trayProps').box + '/' + flow.get('trayProps').type + '/' + flow.get('trayProps').name + '/archive',\n    payload: JSON.stringify(tray)\n};\nreturn  newMsg;  \n",
+        "func": "if (!msg.payload) return null;\nvar tray = flow.get('tray');\nif (tray == null) return null;\nvar newMsg = \n{\n    topic: flow.get('trayProps').box + '/tray/' + flow.get('trayProps').type + '/' + flow.get('trayProps').name + '/archive',\n    payload: JSON.stringify(tray)\n};\nreturn  newMsg;  \n",
         "outputs": 1,
         "noerr": 0,
         "initialize": "",
@@ -588,7 +589,7 @@
         "type": "function",
         "z": "281e0a510310e9c6",
         "name": "Create Setting",
-        "func": "let modBusSettingMsg = null;\nlet normalSettingMsg = null;\nlet trayControlMessage = null;\nlet tray = flow.get('tray');\nif (tray == null) return [modBusSettingMsg,normalSettingMsg,trayControlMessage];\nlet modbusSettingCubes = flow.get('modbusSettingCubes');\nlet icube = modbusSettingCubes.indexOf(msg.payload.cube);\n\nif (icube >= 0)\n{\n    if (tray[modbusSettingCubes[icube]].modbus.type == \"holding\") \n    {\n        let newVal = msg.payload.value;\n        newVal = Math.round(newVal * tray[modbusSettingCubes[icube]].modbus.res);\n        if (tray[modbusSettingCubes[icube]].modbus.signed) {\n            if (newVal > 32767) newVal = 32767;\n            if (newVal < -32767) newVal = -32767;\n            if (newVal < 0) newVal = newVal + 65536;\n        }\n        if (newVal < 0) newVal = 0;\n        if (newVal >= 65536) newVal = 65535;\n        modBusSettingMsg = { topic: modbusSettingCubes[icube], payload:{ value: newVal, 'fc': 0x6, 'unitid': 1, 'address': tray[modbusSettingCubes[icube]].modbus.address, 'quantity': 1 }};\n    }\n    if (tray[modbusSettingCubes[icube]].modbus.type == \"coil\") \n    {\n        let newVal = msg.payload.value;\n        modBusSettingMsg = { topic: modbusSettingCubes[icube], payload:{ value: newVal, 'fc': 0x5, 'unitid': 1, 'address': tray[modbusSettingCubes[icube]].modbus.address, 'quantity': 1 }};\n    }\n    if (modBusSettingMsg != null) flow.set('settingInProgress', true);\n    return [modBusSettingMsg,normalSettingMsg,trayControlMessage];\n}\n\nswitch (msg.payload.cube) \n{\n    case 'alias':\n        tray.alias.value = msg.payload.value;\n        normalSettingMsg = { topic: 'newData', payload: true };\n       break;\n    case 'trayControl':\n        switch(msg.payload.value)\n        {\n            case 0:\n                tray.trayControl.value = 0;\n                break;\n            case 1:\n                tray.trayControl.value = -1;\n                break;\n            case 2:\n                if (tray.trayControl.value > 0)\n                {\n                    tray.trayControl.value = 2;\n                    let trayProps  = flow.get('trayProps');\n                    node.warn(\"Asking for tray from database\");\n                    trayControlMessage =\n                    {\n                        topic: trayProps.box + '/' + trayProps.type + '/' + trayProps.name + '/echo',\n                        payload: JSON.stringify({ topic: trayProps.box + '/' + trayProps.type + '/' + trayProps.name + '/setting/echo' })\n                    };\n                }\n                break;\n            default:\n                tray.trayControl.value = 0;\n                break;\n        }\n        normalSettingMsg = { topic: 'newData', payload: true };\n       break;\n    default:\n        break;\n}\nflow.set('settingInProgress', false);\nreturn [modBusSettingMsg,normalSettingMsg,trayControlMessage];\n",
+        "func": "let modBusSettingMsg = null;\nlet normalSettingMsg = null;\nlet trayControlMessage = null;\nlet tray = flow.get('tray');\nif (tray == null) return [modBusSettingMsg,normalSettingMsg,trayControlMessage];\nlet modbusSettingCubes = flow.get('modbusSettingCubes');\nlet icube = modbusSettingCubes.indexOf(msg.payload.cube);\n\nif (icube >= 0)\n{\n    if (tray[modbusSettingCubes[icube]].modbus.type == \"holding\") \n    {\n        let newVal = msg.payload.value;\n        newVal = Math.round(newVal * tray[modbusSettingCubes[icube]].modbus.res);\n        if (tray[modbusSettingCubes[icube]].modbus.signed) {\n            if (newVal > 32767) newVal = 32767;\n            if (newVal < -32767) newVal = -32767;\n            if (newVal < 0) newVal = newVal + 65536;\n        }\n        if (newVal < 0) newVal = 0;\n        if (newVal >= 65536) newVal = 65535;\n        modBusSettingMsg = { topic: modbusSettingCubes[icube], payload:{ value: newVal, 'fc': 0x6, 'unitid': 1, 'address': tray[modbusSettingCubes[icube]].modbus.address, 'quantity': 1 }};\n    }\n    if (tray[modbusSettingCubes[icube]].modbus.type == \"coil\") \n    {\n        let newVal = msg.payload.value;\n        modBusSettingMsg = { topic: modbusSettingCubes[icube], payload:{ value: newVal, 'fc': 0x5, 'unitid': 1, 'address': tray[modbusSettingCubes[icube]].modbus.address, 'quantity': 1 }};\n    }\n    if (modBusSettingMsg != null) flow.set('settingInProgress', true);\n    return [modBusSettingMsg,normalSettingMsg,trayControlMessage];\n}\n\nswitch (msg.payload.cube) \n{\n    case 'alias':\n        tray.alias.value = msg.payload.value;\n        normalSettingMsg = { topic: 'newData', payload: true };\n       break;\n    case 'trayControl':\n        switch(msg.payload.value)\n        {\n            case 0:\n                tray.trayControl.value = 0;\n                break;\n            case 1:\n                tray.trayControl.value = -1;\n                break;\n            case 2:\n                if (tray.trayControl.value > 0)\n                {\n                    tray.trayControl.value = 2;\n                    let trayProps  = flow.get('trayProps');\n                    node.warn(\"Asking for tray from database\");\n                    trayControlMessage =\n                    {\n                        topic: trayProps.box + '/tray/' + trayProps.type + '/' + trayProps.name + '/echo',\n                        payload: JSON.stringify({ topic: trayProps.box + '/tray/' + trayProps.type + '/' + trayProps.name + '/setting/echo' })\n                    };\n                }\n                break;\n            default:\n                tray.trayControl.value = 0;\n                break;\n        }\n        normalSettingMsg = { topic: 'newData', payload: true };\n       break;\n    default:\n        break;\n}\nflow.set('settingInProgress', false);\nreturn [modBusSettingMsg,normalSettingMsg,trayControlMessage];\n",
         "outputs": 3,
         "noerr": 0,
         "initialize": "",
@@ -1092,7 +1093,7 @@
         "links": [
             "f882c2407b2620be"
         ],
-        "x": 1575,
+        "x": 1035,
         "y": 40,
         "wires": []
     },
@@ -1118,13 +1119,13 @@
         "type": "function",
         "z": "281e0a510310e9c6",
         "name": "Request tray from Database",
-        "func": "let tray = flow.get('tray');\nif (tray != null) return [null,null];\nlet trayProps  = flow.get('trayProps');\nnode.warn(\"Asking for tray from database\");\nvar newMsg =\n{\n    topic: trayProps.box + '/' + trayProps.type + '/' + trayProps.name + '/echo',\n    payload: JSON.stringify({ topic: trayProps.box + '/' + trayProps.type + '/' + trayProps.name + '/setting/echo' })\n};\nreturn [newMsg, { topic: \"getTrayProps\", payload: true }];  \n",
+        "func": "let tray = flow.get('tray');\nif (tray != null) return [null,null];\nlet trayProps  = flow.get('trayProps');\nnode.warn(\"Asking for tray from database\");\nvar newMsg =\n{\n    topic: trayProps.box + '/tray/' + trayProps.type + '/' + trayProps.name + '/echo',\n    payload: JSON.stringify({ topic: trayProps.box + '/tray/' + trayProps.type + '/' + trayProps.name + '/setting/echo' })\n};\nreturn [newMsg, { topic: \"getTrayProps\", payload: true }];  \n",
         "outputs": 2,
         "noerr": 0,
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 1360,
+        "x": 820,
         "y": 100,
         "wires": [
             [
@@ -1152,7 +1153,7 @@
         "drop": false,
         "allowrate": false,
         "outputs": 1,
-        "x": 1620,
+        "x": 1080,
         "y": 120,
         "wires": [
             [
@@ -1169,7 +1170,7 @@
         "links": [
             "2545c4a66f386231"
         ],
-        "x": 1755,
+        "x": 1215,
         "y": 40,
         "wires": []
     },
@@ -1181,7 +1182,7 @@
         "links": [
             "175febc97e8ae24a"
         ],
-        "x": 1205,
+        "x": 665,
         "y": 40,
         "wires": [
             [
@@ -1266,46 +1267,46 @@
         "wires": []
     },
     {
-        "id": "6af76a294daa96eb",
+        "id": "d3215282604f589f",
+        "type": "delay",
+        "z": "281e0a510310e9c6",
+        "name": "",
+        "pauseType": "delay",
+        "timeout": "2",
+        "timeoutUnits": "seconds",
+        "rate": "1",
+        "nbRateUnits": "1",
+        "rateUnits": "second",
+        "randomFirst": "1",
+        "randomLast": "5",
+        "randomUnits": "seconds",
+        "drop": false,
+        "allowrate": false,
+        "outputs": 1,
+        "x": 540,
+        "y": 100,
+        "wires": [
+            [
+                "1a3f1121b7b0f033"
+            ]
+        ]
+    },
+    {
+        "id": "a1ac9e631b1c38ed",
         "type": "function",
         "z": "281e0a510310e9c6",
-        "name": "Save flow env variables",
-        "func": "flow.set(msg.topic,msg.payload);\nreturn null;",
-        "outputs": 0,
+        "name": "MQTT subscribe topic",
+        "func": "let subscribeTopic = flow.get('trayProps').box + \"/tray/\" + flow.get('trayProps').type +'/' + flow.get('trayProps').name + \"/setting/#\";\nreturn {action:\"subscribe\",topic:subscribeTopic};",
+        "outputs": 1,
         "noerr": 0,
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 350,
-        "y": 100,
-        "wires": []
-    },
-    {
-        "id": "695686dff4703418",
-        "type": "inject",
-        "z": "281e0a510310e9c6",
-        "name": "testMode",
-        "props": [
-            {
-                "p": "payload"
-            },
-            {
-                "p": "topic",
-                "vt": "str"
-            }
-        ],
-        "repeat": "",
-        "crontab": "",
-        "once": true,
-        "onceDelay": "1",
-        "topic": "testMode",
-        "payload": "TESTMODE",
-        "payloadType": "env",
-        "x": 140,
-        "y": 100,
+        "x": 160,
+        "y": 280,
         "wires": [
             [
-                "6af76a294daa96eb"
+                "5023092b.a0fe38"
             ]
         ]
     }

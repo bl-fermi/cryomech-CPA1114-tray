@@ -5,6 +5,3 @@ COPY settings.js        /data/settings.js
 WORKDIR /usr/src/node-red
 RUN npm install node-red-contrib-modbus@5.26.0
 RUN npm install node-red-dashboard@3.4.0
-ENV NODEREDLABEL=blinky-modbus-tray
-ENV NODEREDPORT=1880
-ENV ENABLE_NODERED_EDITOR=0

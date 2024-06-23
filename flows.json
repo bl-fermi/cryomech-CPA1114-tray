@@ -148,34 +148,8 @@
         "clientTimeout": "1000",
         "reconnectOnTimeout": true,
         "reconnectTimeout": "2000",
-        "parallelUnitIdsAllowed": false
-    },
-    {
-        "id": "76465bf5aba36e59",
-        "type": "modbus-client",
-        "name": "Mythical Slave",
-        "clienttype": "tcp",
-        "bufferCommands": true,
-        "stateLogEnabled": false,
-        "queueLogEnabled": false,
-        "failureLogEnabled": true,
-        "tcpHost": "127.0.0.1",
-        "tcpPort": "10502",
-        "tcpType": "DEFAULT",
-        "serialPort": "/dev/ttyUSB",
-        "serialType": "RTU-BUFFERD",
-        "serialBaudrate": "9600",
-        "serialDatabits": "8",
-        "serialStopbits": "1",
-        "serialParity": "none",
-        "serialConnectionDelay": "100",
-        "serialAsciiResponseStartDelimiter": "0x3A",
-        "unit_id": "1",
-        "commandDelay": "1",
-        "clientTimeout": "1000",
-        "reconnectOnTimeout": true,
-        "reconnectTimeout": "2000",
-        "parallelUnitIdsAllowed": true,
+        "parallelUnitIdsAllowed": false,
+        "showErrors": false,
         "showWarnings": true,
         "showLogs": true
     },
@@ -184,8 +158,9 @@
         "type": "function",
         "z": "281e0a510310e9c6",
         "name": "Save tray config in Memory",
-        "func": "msg.payload.watchdog.value = 0;\nlet tray = msg.payload;\nflow.set('tray', msg.payload);\nlet modbusCubes = [];\nlet modbusSettingCubes = [];\nlet keys = Object.keys(msg.payload)\nfor (let ikey  in keys)\n{\n    if (msg.payload[keys[ikey]].hasOwnProperty('type'))\n    {\n        if (msg.payload[keys[ikey]].hasOwnProperty('modbus')) \n        {\n            modbusCubes.push(keys[ikey]);\n            if (msg.payload[keys[ikey]].action == \"setting\") \n            {\n                modbusSettingCubes.push(keys[ikey]);\n            }\n        }\n    }\n}\nflow.set('modbusCubes', modbusCubes);\nflow.set('modbusSettingCubes', modbusSettingCubes);\nlet modbusMsg = [];\nfor (let icube in modbusCubes) \n{\n    if (tray[modbusCubes[icube]].modbus.type == \"holding\") \n    {\n        let newVal = tray[modbusCubes[icube]].value;\n        newVal = Math.round(newVal * tray[modbusCubes[icube]].modbus.res);\n        if (tray[modbusCubes[icube]].modbus.signed) {\n            if (newVal > 32767) newVal = 32767;\n            if (newVal < -32767) newVal = -32767;\n            if (newVal < 0) newVal = newVal + 65536;\n        }\n        if (newVal < 0) newVal = 0;\n        if (newVal >= 65536) newVal = 65535;\n        modbusMsg.push({ value: newVal, 'fc': 0x6, 'unitid': 1, 'address': tray[modbusCubes[icube]].modbus.address, 'quantity': 1 });\n    }\n    if (tray[modbusCubes[icube]].modbus.type == \"coil\") \n    {\n        let newVal = tray[modbusCubes[icube]].value;\n        modbusMsg.push({ value: newVal, 'fc': 0x5, 'unitid': 1, 'address': tray[modbusCubes[icube]].modbus.address, 'quantity': 1 });\n    }\n}\ntray.trayControl.value = 0;\nreturn [{ topic: \"modbusConfig\", payload: modbusMsg },{topic: 'setting', payload:{'cube':'trayControl', value:tray.trayControl.value}}];\n",
-        "outputs": 2,
+        "func": "msg.payload.watchdog.value = 0;\nlet tray = msg.payload;\nflow.set('tray', msg.payload);\ntray.trayControl.value = 0;\nreturn {topic: 'setting', payload:{'cube':'trayControl', value:tray.trayControl.value}};\n",
+        "outputs": 1,
+        "timeout": "",
         "noerr": 0,
         "initialize": "",
         "finalize": "",
@@ -193,9 +168,6 @@
         "x": 920,
         "y": 480,
         "wires": [
-            [
-                "099a4107bd867ee7"
-            ],
             [
                 "e6028ca70b6042d8"
             ]
@@ -255,8 +227,9 @@
         "type": "function",
         "z": "281e0a510310e9c6",
         "name": "Init flow Variables",
-        "func": "var trayProps = {\n    box         :   env.get(\"BOX\"),\n    type        :   env.get(\"TRAYTYPE\"),\n    name        :   env.get(\"TRAYNAME\"),\n};\nflow.set(\"testMode\",env.get(\"TESTMODE\"));\nflow.set('trayProps',trayProps);\nflow.set('settingInProgress', false);\nflow.set('tray', null);\nreturn {topic: \"getTrayProps\", payload: true};  \n",
+        "func": "var trayProps = {\n    box         :   env.get(\"BOX\"),\n    type        :   env.get(\"TRAYTYPE\"),\n    name        :   env.get(\"TRAYNAME\"),\n};\nflow.set('trayProps',trayProps);\nflow.set('settingInProgress', false);\nflow.set('tray', null);\nreturn {topic: \"getTrayProps\", payload: true};  \n",
         "outputs": 1,
+        "timeout": "",
         "noerr": 0,
         "initialize": "",
         "finalize": "",
@@ -360,6 +333,7 @@
         "name": "Filter MQTT",
         "func": "return {topic:msg.topic.split('/')[5], payload:msg.payload};",
         "outputs": 1,
+        "timeout": "",
         "noerr": 0,
         "initialize": "",
         "finalize": "",
@@ -377,8 +351,9 @@
         "type": "function",
         "z": "281e0a510310e9c6",
         "name": "Publish tray",
-        "func": "if (!msg.payload) return null;\nvar tray = flow.get('tray');\nif (tray == null) return null;\nlet newMsg = null;\nlet newMsgTopic = flow.get('trayProps').box + '/tray/' + flow.get('trayProps').type + '/' + flow.get('trayProps').name + '/reading';\nswitch( tray.trayControl.value)\n{\n    case 0:\n        newMsg = {topic: newMsgTopic, payload: JSON.stringify(tray)};\n        break;\n    case -1:\n        tray.trayControl.value = 1;\n        newMsg = {topic: newMsgTopic, payload: JSON.stringify(tray)};\n        break;\n    default:\n        break;\n}\nreturn newMsg;\n",
+        "func": "var tray = msg.payload;\nlet newMsgTopic = flow.get('trayProps').box + '/tray/' + flow.get('trayProps').type + '/' + flow.get('trayProps').name + '/reading';\nlet newMsg = {topic: newMsgTopic, payload: JSON.stringify(tray)};;\nreturn newMsg;\n",
         "outputs": 1,
+        "timeout": "",
         "noerr": 0,
         "initialize": "",
         "finalize": "",
@@ -426,8 +401,9 @@
         "type": "function",
         "z": "281e0a510310e9c6",
         "name": "Save config file",
-        "func": "let cubeAlarm = flow.get('tray')[msg.payload.cube].alarm;\ncubeAlarm.limits.lolo = msg.payload.limits.lolo;\ncubeAlarm.limits.low  = msg.payload.limits.low;\ncubeAlarm.limits.high = msg.payload.limits.high;\ncubeAlarm.limits.hihi = msg.payload.limits.hihi;\ncubeAlarm.notify.name = msg.payload.notify.name;\ncubeAlarm.notify.number = msg.payload.notify.number;\nreturn { topic: 'newData', payload: true };",
+        "func": "let tray = flow.get('tray');\nif (tray == null) return null;\nlet cubeAlarm = tray[msg.payload.cube].alarm;\ncubeAlarm.limits.lolo = msg.payload.limits.lolo;\ncubeAlarm.limits.low  = msg.payload.limits.low;\ncubeAlarm.limits.high = msg.payload.limits.high;\ncubeAlarm.limits.hihi = msg.payload.limits.hihi;\nreturn { topic: 'newData', payload: tray };",
         "outputs": 1,
+        "timeout": "",
         "noerr": 0,
         "initialize": "",
         "finalize": "",
@@ -589,8 +565,9 @@
         "type": "function",
         "z": "281e0a510310e9c6",
         "name": "Create Setting",
-        "func": "let modBusSettingMsg = null;\nlet normalSettingMsg = null;\nlet trayControlMessage = null;\nlet tray = flow.get('tray');\nif (tray == null) return [modBusSettingMsg,normalSettingMsg,trayControlMessage];\nlet modbusSettingCubes = flow.get('modbusSettingCubes');\nlet icube = modbusSettingCubes.indexOf(msg.payload.cube);\n\nif (icube >= 0)\n{\n    if (tray[modbusSettingCubes[icube]].modbus.type == \"holding\") \n    {\n        let newVal = msg.payload.value;\n        newVal = Math.round(newVal * tray[modbusSettingCubes[icube]].modbus.res);\n        if (tray[modbusSettingCubes[icube]].modbus.signed) {\n            if (newVal > 32767) newVal = 32767;\n            if (newVal < -32767) newVal = -32767;\n            if (newVal < 0) newVal = newVal + 65536;\n        }\n        if (newVal < 0) newVal = 0;\n        if (newVal >= 65536) newVal = 65535;\n        modBusSettingMsg = { topic: modbusSettingCubes[icube], payload:{ value: newVal, 'fc': 0x6, 'unitid': 1, 'address': tray[modbusSettingCubes[icube]].modbus.address, 'quantity': 1 }};\n    }\n    if (tray[modbusSettingCubes[icube]].modbus.type == \"coil\") \n    {\n        let newVal = msg.payload.value;\n        modBusSettingMsg = { topic: modbusSettingCubes[icube], payload:{ value: newVal, 'fc': 0x5, 'unitid': 1, 'address': tray[modbusSettingCubes[icube]].modbus.address, 'quantity': 1 }};\n    }\n    if (modBusSettingMsg != null) flow.set('settingInProgress', true);\n    return [modBusSettingMsg,normalSettingMsg,trayControlMessage];\n}\n\nswitch (msg.payload.cube) \n{\n    case 'alias':\n        tray.alias.value = msg.payload.value;\n        normalSettingMsg = { topic: 'newData', payload: true };\n       break;\n    case 'trayControl':\n        switch(msg.payload.value)\n        {\n            case 0:\n                tray.trayControl.value = 0;\n                break;\n            case 1:\n                tray.trayControl.value = -1;\n                break;\n            case 2:\n                if (tray.trayControl.value > 0)\n                {\n                    tray.trayControl.value = 2;\n                    let trayProps  = flow.get('trayProps');\n                    node.warn(\"Asking for tray from database\");\n                    trayControlMessage =\n                    {\n                        topic: trayProps.box + '/tray/' + trayProps.type + '/' + trayProps.name + '/echo',\n                        payload: JSON.stringify({ topic: trayProps.box + '/tray/' + trayProps.type + '/' + trayProps.name + '/setting/echo' })\n                    };\n                }\n                break;\n            default:\n                tray.trayControl.value = 0;\n                break;\n        }\n        normalSettingMsg = { topic: 'newData', payload: true };\n       break;\n    default:\n        break;\n}\nflow.set('settingInProgress', false);\nreturn [modBusSettingMsg,normalSettingMsg,trayControlMessage];\n",
+        "func": "let modBusSettingMsg = null;\nlet normalSettingMsg = null;\nlet trayControlMessage = null;\nlet tray = flow.get('tray');\nif (tray == null) return [modBusSettingMsg,normalSettingMsg,trayControlMessage];\n\n\nswitch (msg.payload.cube) \n{\n    case 'disableComp':\n        tray.disableComp.value = msg.payload.value;\n        normalSettingMsg = { topic: 'newData', payload: tray };\n        if (msg.payload.value == 1) modBusSettingMsg = { topic: 'disableComp', payload:{fc:6, unitid:1, address:4, quantity:1, value:65535}};\n        break;\n    case 'enableComp':\n        tray.enableComp.value = msg.payload.value;\n        normalSettingMsg = { topic: 'newData', payload: tray };\n        if (msg.payload.value == 1) modBusSettingMsg = { topic: 'disableComp', payload:{fc:6, unitid:1, address:4, quantity:1, value:1}};\n        break;\n    case 'alias':\n        tray.alias.value = msg.payload.value;\n        normalSettingMsg = { topic: 'newData', payload: tray };\n       break;\n    case 'trayControl':\n        switch(msg.payload.value)\n        {\n            case 0:\n                tray.trayControl.value = 0;\n                break;\n            case 1:\n                tray.trayControl.value = -1;\n                break;\n            case 2:\n                if (tray.trayControl.value > 0)\n                {\n                    tray.trayControl.value = 2;\n                    let trayProps  = flow.get('trayProps');\n                    node.warn(\"Asking for tray from database\");\n                    trayControlMessage =\n                    {\n                        topic: trayProps.box + '/tray/' + trayProps.type + '/' + trayProps.name + '/echo',\n                        payload: JSON.stringify({ topic: trayProps.box + '/tray/' + trayProps.type + '/' + trayProps.name + '/setting/echo' })\n                    };\n                }\n                break;\n            default:\n                tray.trayControl.value = 0;\n                break;\n        }\n        normalSettingMsg = { topic: 'newData', payload: tray };\n       break;\n    default:\n        break;\n}\nflow.set('settingInProgress', false);\nreturn [modBusSettingMsg,normalSettingMsg,trayControlMessage];\n",
         "outputs": 3,
+        "timeout": "",
         "noerr": 0,
         "initialize": "",
         "finalize": "",
@@ -599,32 +576,13 @@
         "y": 260,
         "wires": [
             [
-                "3744a97333f32473"
+                "4402bc5ad5b005a3"
             ],
             [
                 "de9724337ab6b427"
             ],
             [
                 "6c29d83d29cb0f0b"
-            ]
-        ]
-    },
-    {
-        "id": "99fbe8135d0ce161",
-        "type": "function",
-        "z": "281e0a510310e9c6",
-        "name": "Readings Alarm Scan",
-        "func": "var newData = msg.payload;\nvar tray = flow.get('tray');\nif (tray == null) return null;\ntray.watchdog.value = tray.watchdog.value + 1;\nif (tray.watchdog.value > 32760) tray.watchdog.value = 0;\nvar alarmFlagReading = scalarAlarmScan(tray, 'reading');\nvar alarmFlagSetting = scalarAlarmScan(tray, 'setting');\nvar newMsg   = null;\nif (newData)\n{\n    newMsg = \n    {\n        topic: 'newData',\n        payload: true\n    }\n}\nreturn newMsg;\n\nfunction getActionArray(tray, type, actionType)\n{\n    var actionArray = [];\n    var keys = Object.keys(tray);\n    for (var ii = 0; ii < keys.length; ++ii)\n    {\n        if (tray[keys[ii]].hasOwnProperty('type'))\n        {\n            if (tray[keys[ii]].type == type)\n            {\n                if (tray[keys[ii]].action == actionType)\n                {\n                    actionArray.push(tray[keys[ii]]);\n                }\n            }\n        }\n    }\n    return actionArray;\n}\nfunction scalarAlarmScan(tray, actionType)\n{\n    var alarmFlag = false;\n    var actionArray = getActionArray(tray, 'scalar', actionType);\n    if (actionArray.length > 0)\n    {\n        for (var ii = 0; ii < actionArray.length; ++ii)\n        {\n            let oldAlarmValue = actionArray[ii].alarm.value;\n            actionArray[ii].alarm.value = 0;\n            if (!isNaN(actionArray[ii].value))\n            {\n                if (actionArray[ii].value <= actionArray[ii].alarm.limits.low)  actionArray[ii].alarm.value = 1;\n                if (actionArray[ii].value <= actionArray[ii].alarm.limits.lolo) actionArray[ii].alarm.value = 3;\n                if (actionArray[ii].value >= actionArray[ii].alarm.limits.high) actionArray[ii].alarm.value = 2;\n                if (actionArray[ii].value >= actionArray[ii].alarm.limits.hihi) actionArray[ii].alarm.value = 4;\n                if (actionArray[ii].alarm.value != oldAlarmValue) alarmFlag = true;\n            }\n        }\n    }\n    return alarmFlag;\n}\n",
-        "outputs": 1,
-        "noerr": 0,
-        "initialize": "// Code added here will be run once\n// whenever the node is started.\ncontext.set('lastAlarm', -1);",
-        "finalize": "",
-        "libs": [],
-        "x": 1260,
-        "y": 660,
-        "wires": [
-            [
-                "f5d0568e288098ed"
             ]
         ]
     },
@@ -637,8 +595,8 @@
             "45a97566b65c65cc",
             "05c0c7b4f59ca88d"
         ],
-        "x": 1435,
-        "y": 660,
+        "x": 1365,
+        "y": 1040,
         "wires": []
     },
     {
@@ -669,418 +627,13 @@
         "keepMsgProperties": false,
         "delayOnStart": false,
         "startDelayTime": "",
-        "x": 1390,
+        "x": 1090,
         "y": 200,
         "wires": [
             [],
             [
-                "3f594171d5aa07ab"
-            ]
-        ]
-    },
-    {
-        "id": "3744a97333f32473",
-        "type": "delay",
-        "z": "281e0a510310e9c6",
-        "name": "",
-        "pauseType": "delay",
-        "timeout": "200",
-        "timeoutUnits": "milliseconds",
-        "rate": "1",
-        "nbRateUnits": "1",
-        "rateUnits": "second",
-        "randomFirst": "1",
-        "randomLast": "5",
-        "randomUnits": "seconds",
-        "drop": false,
-        "allowrate": false,
-        "outputs": 1,
-        "x": 1090,
-        "y": 220,
-        "wires": [
-            [
-                "b0b31c3d8d2d0598"
-            ]
-        ]
-    },
-    {
-        "id": "3f594171d5aa07ab",
-        "type": "function",
-        "z": "281e0a510310e9c6",
-        "name": "Check Modbus Setting",
-        "func": "flow.set('settingInProgress',false);\nlet tray = flow.get('tray');\nif (tray == null) return null;\nif (tray[msg.topic].modbus.type == \"holding\") \n{\n    let newVal = msg.payload.value;\n    if (tray[msg.topic].modbus.signed) \n    {\n        if (newVal > 32767) newVal = newVal - 65536;\n    }\n    newVal = newVal / tray[msg.topic].modbus.res;\n    tray[msg.topic].value = newVal;\n    return { topic: 'newData', payload: true };\n}\nif (tray[msg.topic].modbus.type == \"coil\") \n{\n    if (msg.payload.state)\n    {\n        tray[msg.topic].value = 1;\n    }\n    else\n    {\n        tray[msg.topic].value = 0;\n    }\n    return { topic: 'newData', payload: true };\n}\nreturn { topic: 'newData', payload: false }\n",
-        "outputs": 1,
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "libs": [],
-        "x": 1640,
-        "y": 220,
-        "wires": [
-            [
-                "184fe4c567bcfc8d"
-            ]
-        ]
-    },
-    {
-        "id": "184fe4c567bcfc8d",
-        "type": "link out",
-        "z": "281e0a510310e9c6",
-        "name": "Check Modbus Setting out",
-        "mode": "link",
-        "links": [
-            "45a97566b65c65cc",
-            "04d132d87ffeb91a"
-        ],
-        "x": 1825,
-        "y": 220,
-        "wires": []
-    },
-    {
-        "id": "0518bb7bcaf9e999",
-        "type": "inject",
-        "z": "281e0a510310e9c6",
-        "name": "read Status",
-        "props": [
-            {
-                "p": "payload"
-            },
-            {
-                "p": "topic",
-                "vt": "str"
-            }
-        ],
-        "repeat": "2",
-        "crontab": "",
-        "once": true,
-        "onceDelay": "8",
-        "topic": "readTable",
-        "payload": "",
-        "payloadType": "date",
-        "x": 150,
-        "y": 660,
-        "wires": [
-            [
-                "c59cae41fa3dfa4a"
-            ]
-        ]
-    },
-    {
-        "id": "c59cae41fa3dfa4a",
-        "type": "function",
-        "z": "281e0a510310e9c6",
-        "name": "Setup read Modbus",
-        "func": "if (flow.get('settingInProgress')) return null;\nlet tray = flow.get('tray');\nif (tray == null) return null;\nlet modbusCubes = flow.get('modbusCubes');\nlet modbusMsg = {};\nfor (let icube in modbusCubes) \n{\n    if (tray[modbusCubes[icube]].modbus.type == \"holding\") \n    {\n        modbusMsg[modbusCubes[icube]] = { 'fc': 0x3, 'unitid': 1, 'address': tray[modbusCubes[icube]].modbus.address, 'quantity': 1 };\n    }\n    if (tray[modbusCubes[icube]].modbus.type == \"coil\") \n    {\n        modbusMsg[modbusCubes[icube]] = { 'fc': 0x1, 'unitid': 1, 'address': tray[modbusCubes[icube]].modbus.address, 'quantity': 1 };\n    }\n}\nreturn {topic: \"test\", payload:modbusMsg};",
-        "outputs": 1,
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "libs": [],
-        "x": 350,
-        "y": 660,
-        "wires": [
-            [
-                "df7b35ddf84b179a"
-            ]
-        ]
-    },
-    {
-        "id": "5d5f47a0eaae7c42",
-        "type": "modbus-flex-getter",
-        "z": "281e0a510310e9c6",
-        "name": "Read Modbus ",
-        "showStatusActivities": true,
-        "showErrors": true,
-        "showWarnings": true,
-        "logIOActivities": false,
-        "server": "4a8c3caa0ff9b87d",
-        "useIOFile": false,
-        "ioFile": "",
-        "useIOForPayload": false,
-        "emptyMsgOnFail": false,
-        "keepMsgProperties": false,
-        "delayOnStart": false,
-        "startDelayTime": "",
-        "x": 780,
-        "y": 620,
-        "wires": [
-            [],
-            [
-                "65d1f50db1b29078"
-            ]
-        ]
-    },
-    {
-        "id": "dc484bfd8579f263",
-        "type": "inject",
-        "z": "281e0a510310e9c6",
-        "name": "Test Setting 0",
-        "props": [
-            {
-                "p": "payload"
-            },
-            {
-                "p": "topic",
-                "vt": "str"
-            }
-        ],
-        "repeat": "",
-        "crontab": "",
-        "once": false,
-        "onceDelay": 0.1,
-        "topic": "setting",
-        "payload": "{\"cube\":\"cube05\",\"value\":0}",
-        "payloadType": "json",
-        "x": 490,
-        "y": 280,
-        "wires": [
-            [
-                "f9be9054ce456982"
-            ]
-        ]
-    },
-    {
-        "id": "df7b35ddf84b179a",
-        "type": "split",
-        "z": "281e0a510310e9c6",
-        "name": "",
-        "splt": "\\n",
-        "spltType": "str",
-        "arraySplt": 1,
-        "arraySpltType": "len",
-        "stream": false,
-        "addname": "topic",
-        "x": 510,
-        "y": 660,
-        "wires": [
-            [
-                "90090457f00968ce"
-            ]
-        ]
-    },
-    {
-        "id": "65d1f50db1b29078",
-        "type": "function",
-        "z": "281e0a510310e9c6",
-        "name": "Parse Reading",
-        "func": "flow.set('settingInProgress',false);\nlet tray = flow.get('tray');\nif (tray == null) return null;\nif (tray[msg.topic].modbus.type == \"holding\") \n{\n    let newVal = msg.payload.data[0];\n    if (tray[msg.topic].modbus.signed) \n    {\n        if (newVal > 32767) newVal = newVal - 65536;\n    }\n    newVal = newVal / tray[msg.topic].modbus.res;\n    tray[msg.topic].value = newVal;\n}\nif (tray[msg.topic].modbus.type == \"coil\") \n{\n    if (msg.payload.data[0])\n    {\n        tray[msg.topic].value = 1;\n    }\n    else\n    {\n        tray[msg.topic].value = 0;\n    }\n}\nlet modbusCubes = flow.get('modbusCubes');\nlet icube = modbusCubes.indexOf(msg.topic);\nif (icube == (modbusCubes.length - 1)) return { topic: 'readingDone', payload: true }\nreturn null;\n",
-        "outputs": 1,
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "libs": [],
-        "x": 1040,
-        "y": 660,
-        "wires": [
-            [
-                "99fbe8135d0ce161"
-            ]
-        ]
-    },
-    {
-        "id": "303fe6a9c57e9d67",
-        "type": "modbus-flex-write",
-        "z": "281e0a510310e9c6",
-        "name": "Set Mythical Modbus",
-        "showStatusActivities": false,
-        "showErrors": false,
-        "showWarnings": true,
-        "server": "76465bf5aba36e59",
-        "emptyMsgOnFail": false,
-        "keepMsgProperties": false,
-        "delayOnStart": false,
-        "startDelayTime": "",
-        "x": 1280,
-        "y": 480,
-        "wires": [
-            [],
-            []
-        ]
-    },
-    {
-        "id": "099a4107bd867ee7",
-        "type": "split",
-        "z": "281e0a510310e9c6",
-        "name": "",
-        "splt": "\\n",
-        "spltType": "str",
-        "arraySplt": 1,
-        "arraySpltType": "len",
-        "stream": false,
-        "addname": "",
-        "x": 1110,
-        "y": 480,
-        "wires": [
-            [
-                "303fe6a9c57e9d67"
-            ]
-        ]
-    },
-    {
-        "id": "c2c177727b94f9ba",
-        "type": "modbus-server",
-        "z": "281e0a510310e9c6",
-        "name": "Mythical Slave",
-        "logEnabled": false,
-        "hostname": "127.0.0.1",
-        "serverPort": 10502,
-        "responseDelay": 100,
-        "delayUnit": "ms",
-        "coilsBufferSize": "100",
-        "holdingBufferSize": "10",
-        "inputBufferSize": "100",
-        "discreteBufferSize": "100",
-        "showErrors": false,
-        "x": 1500,
-        "y": 480,
-        "wires": [
-            [],
-            [],
-            [],
-            [],
-            []
-        ]
-    },
-    {
-        "id": "41d1859cfcd19658",
-        "type": "inject",
-        "z": "281e0a510310e9c6",
-        "name": "Test Setting 1",
-        "props": [
-            {
-                "p": "payload"
-            },
-            {
-                "p": "topic",
-                "vt": "str"
-            }
-        ],
-        "repeat": "",
-        "crontab": "",
-        "once": false,
-        "onceDelay": 0.1,
-        "topic": "setting",
-        "payload": "{\"cube\":\"cube05\",\"value\":1}",
-        "payloadType": "json",
-        "x": 490,
-        "y": 320,
-        "wires": [
-            [
-                "f9be9054ce456982"
-            ]
-        ]
-    },
-    {
-        "id": "90090457f00968ce",
-        "type": "switch",
-        "z": "281e0a510310e9c6",
-        "name": "",
-        "property": "testMode",
-        "propertyType": "flow",
-        "rules": [
-            {
-                "t": "eq",
-                "v": "0",
-                "vt": "num"
-            },
-            {
-                "t": "eq",
-                "v": "1",
-                "vt": "num"
-            }
-        ],
-        "checkall": "true",
-        "repair": false,
-        "outputs": 2,
-        "x": 630,
-        "y": 660,
-        "wires": [
-            [
-                "5d5f47a0eaae7c42"
-            ],
-            [
-                "9fa3c606049b206e"
-            ]
-        ]
-    },
-    {
-        "id": "9fa3c606049b206e",
-        "type": "modbus-flex-getter",
-        "z": "281e0a510310e9c6",
-        "name": "Read Modbus Test",
-        "showStatusActivities": true,
-        "showErrors": true,
-        "showWarnings": true,
-        "logIOActivities": false,
-        "server": "76465bf5aba36e59",
-        "useIOFile": false,
-        "ioFile": "",
-        "useIOForPayload": false,
-        "emptyMsgOnFail": false,
-        "keepMsgProperties": false,
-        "delayOnStart": false,
-        "startDelayTime": "",
-        "x": 790,
-        "y": 700,
-        "wires": [
-            [],
-            [
-                "65d1f50db1b29078"
-            ]
-        ]
-    },
-    {
-        "id": "b0b31c3d8d2d0598",
-        "type": "switch",
-        "z": "281e0a510310e9c6",
-        "name": "",
-        "property": "testMode",
-        "propertyType": "flow",
-        "rules": [
-            {
-                "t": "eq",
-                "v": "0",
-                "vt": "num"
-            },
-            {
-                "t": "eq",
-                "v": "1",
-                "vt": "num"
-            }
-        ],
-        "checkall": "true",
-        "repair": false,
-        "outputs": 2,
-        "x": 1230,
-        "y": 220,
-        "wires": [
-            [
-                "4402bc5ad5b005a3"
-            ],
-            [
-                "9c75d78c38aa16cb"
-            ]
-        ]
-    },
-    {
-        "id": "9c75d78c38aa16cb",
-        "type": "modbus-flex-write",
-        "z": "281e0a510310e9c6",
-        "name": "Set Modbus Test",
-        "showStatusActivities": false,
-        "showErrors": false,
-        "showWarnings": true,
-        "server": "76465bf5aba36e59",
-        "emptyMsgOnFail": false,
-        "keepMsgProperties": false,
-        "delayOnStart": false,
-        "startDelayTime": "",
-        "x": 1410,
-        "y": 260,
-        "wires": [
-            [],
-            [
-                "3f594171d5aa07ab"
+                "87c770b88cf6272d",
+                "b66aca1b7039e50d"
             ]
         ]
     },
@@ -1195,8 +748,9 @@
         "type": "function",
         "z": "281e0a510310e9c6",
         "name": "prep ping",
-        "func": "return {topic:'newData', payload:true};",
+        "func": "let tray = flow.get('tray');\nif (tray == null) return null;\nreturn {topic:'newData', payload:tray};",
         "outputs": 1,
+        "timeout": "",
         "noerr": 0,
         "initialize": "",
         "finalize": "",
@@ -1248,8 +802,8 @@
         "links": [
             "21ead1f81b53e80b"
         ],
-        "x": 1085,
-        "y": 540,
+        "x": 1105,
+        "y": 480,
         "wires": []
     },
     {
@@ -1309,5 +863,292 @@
                 "5023092b.a0fe38"
             ]
         ]
+    },
+    {
+        "id": "793c3898f3118195",
+        "type": "modbus-flex-getter",
+        "z": "281e0a510310e9c6",
+        "name": "Read Modbus ",
+        "showStatusActivities": true,
+        "showErrors": true,
+        "showWarnings": true,
+        "logIOActivities": false,
+        "server": "4a8c3caa0ff9b87d",
+        "useIOFile": false,
+        "ioFile": "",
+        "useIOForPayload": false,
+        "emptyMsgOnFail": false,
+        "keepMsgProperties": false,
+        "delayOnStart": false,
+        "startDelayTime": "",
+        "x": 560,
+        "y": 1040,
+        "wires": [
+            [],
+            [
+                "608b08b6b5244339"
+            ]
+        ]
+    },
+    {
+        "id": "608b08b6b5244339",
+        "type": "function",
+        "z": "281e0a510310e9c6",
+        "name": "Parse Readings",
+        "func": "let tray = flow.get('tray');\nif (tray == null) return null;\n\nlet buffer2 = new ArrayBuffer(2);\nlet view2 = new DataView(buffer2);\n\ntray.timeStamp = new Date().getTime();\ntray.watchdog.value = tray.watchdog.value + 1;\nif (tray.watchdog.value > 32765) tray.watchdog.value = 0;\n\n//Operating State\nview2.setUint8(0,msg.payload.buffer[3]);\nview2.setUint8(1,msg.payload.buffer[2]);\ntray.opStatus.value = view2.getInt16(0);\n\n//Compressor State\nview2.setUint8(0,msg.payload.buffer[5]);\nview2.setUint8(1,msg.payload.buffer[4]);\ntray.compState.value = view2.getInt16(0);\n//tray.enableComp.value = tray.compState.value;\n\ntray.inverterCommOK.value = 0;\ntray.driverCommOK.value = 0;\ntray.inverterOK.value = 0;\ntray.motorSensorOK.value = 0;\ntray.lowPressSensorOK.value = 0;\ntray.highPressSensorOK.value = 0;\ntray.oilSensorOK.value = 0;\ntray.heliumSensorOK.value = 0;\ntray.coolOutSensorOK.value = 0;\ntray.coolInSensorOK.value = 0;\ntray.motorStallOK.value = 0;\ntray.staticPressOK.value = 0;\ntray.powerSupplyOK.value = 0;\ntray.threePhaseOK.value = 0;\ntray.motorCurrentOK.value = 0;\ntray.deltaPressureOK.value = 0;\ntray.highPressureOK.value = 0;\ntray.lowPressureOK.value = 0;\ntray.heliumOK.value = 0;\ntray.oilOK.value = 0;\ntray.coolantOutOK.value = 0;\ntray.coolantInOK.value = 0;\n\nlet buffer4 = new ArrayBuffer(4);\nlet view4 = new DataView(buffer4);\nlet newData = []\n//Warning No\nview4.setUint8(0,msg.payload.buffer[8]);\nview4.setUint8(1,msg.payload.buffer[9]);\nview4.setUint8(2,msg.payload.buffer[6]);\nview4.setUint8(3,msg.payload.buffer[7]);\nsetStatusBits(view4.getInt32(0), true);\n\n//Alarm No\nview4.setUint8(0,msg.payload.buffer[12]);\nview4.setUint8(1,msg.payload.buffer[13]);\nview4.setUint8(2,msg.payload.buffer[10]);\nview4.setUint8(3,msg.payload.buffer[11]);\nsetStatusBits(view4.getInt32(0), false);\n\n//Cooling in\nview4.setUint8(0,msg.payload.buffer[16]);\nview4.setUint8(1,msg.payload.buffer[17]);\nview4.setUint8(2,msg.payload.buffer[14]);\nview4.setUint8(3,msg.payload.buffer[15]);\ntray.coolInTemp.value = rounder(view4.getFloat32(0), 3);\n\n//Cooling out\nview4.setUint8(0,msg.payload.buffer[20]);\nview4.setUint8(1,msg.payload.buffer[21]);\nview4.setUint8(2,msg.payload.buffer[18]);\nview4.setUint8(3,msg.payload.buffer[19]);\ntray.coolOutTemp.value = rounder(view4.getFloat32(0), 3);\n\n//Oil\nview4.setUint8(0,msg.payload.buffer[24]);\nview4.setUint8(1,msg.payload.buffer[25]);\nview4.setUint8(2,msg.payload.buffer[22]);\nview4.setUint8(3,msg.payload.buffer[23]);\ntray.oilTemp.value = rounder(view4.getFloat32(0), 3);\n\n//Helium\nview4.setUint8(0,msg.payload.buffer[28]);\nview4.setUint8(1,msg.payload.buffer[29]);\nview4.setUint8(2,msg.payload.buffer[26]);\nview4.setUint8(3,msg.payload.buffer[27]);\ntray.heliumTemp.value = rounder(view4.getFloat32(0), 3);\n\n//Low Pressure\nview4.setUint8(0,msg.payload.buffer[32]);\nview4.setUint8(1,msg.payload.buffer[33]);\nview4.setUint8(2,msg.payload.buffer[30]);\nview4.setUint8(3,msg.payload.buffer[31]);\ntray.lowPress.value = rounder(view4.getFloat32(0), 3);\n\n//Low Pressure Avg\nview4.setUint8(0,msg.payload.buffer[36]);\nview4.setUint8(1,msg.payload.buffer[37]);\nview4.setUint8(2,msg.payload.buffer[34]);\nview4.setUint8(3,msg.payload.buffer[35]);\ntray.lowPressAvg.value = rounder(view4.getFloat32(0), 3);\n\n//High Pressure\nview4.setUint8(0,msg.payload.buffer[40]);\nview4.setUint8(1,msg.payload.buffer[41]);\nview4.setUint8(2,msg.payload.buffer[38]);\nview4.setUint8(3,msg.payload.buffer[39]);\ntray.highPress.value = rounder(view4.getFloat32(0), 3);\n\n//High Pressure Avg\nview4.setUint8(0,msg.payload.buffer[44]);\nview4.setUint8(1,msg.payload.buffer[45]);\nview4.setUint8(2,msg.payload.buffer[42]);\nview4.setUint8(3,msg.payload.buffer[43]);\ntray.highPressAvg.value = rounder(view4.getFloat32(0), 3);\n\n//Delta of Avg Pressures\nview4.setUint8(0,msg.payload.buffer[48]);\nview4.setUint8(1,msg.payload.buffer[49]);\nview4.setUint8(2,msg.payload.buffer[46]);\nview4.setUint8(3,msg.payload.buffer[47]);\ntray.deltaPressAvg.value = rounder(view4.getFloat32(0), 3);\n\n//Motor Current\nview4.setUint8(0,msg.payload.buffer[52]);\nview4.setUint8(1,msg.payload.buffer[53]);\nview4.setUint8(2,msg.payload.buffer[50]);\nview4.setUint8(3,msg.payload.buffer[51]);\ntray.motorAmps.value = rounder(view4.getFloat32(0), 3);\n\n//Hours Of Operation\nview4.setUint8(0,msg.payload.buffer[56]);\nview4.setUint8(1,msg.payload.buffer[57]);\nview4.setUint8(2,msg.payload.buffer[54]);\nview4.setUint8(3,msg.payload.buffer[55]);\ntray.opHours.value = rounder(view4.getFloat32(0), 3);\n\nlet buffer1 = new ArrayBuffer(1);\nlet view1 = new DataView(buffer1);\n// Pressure Scale\nview1.setUint8(0,msg.payload.buffer[59]);\nlet pressScaleIndex = view1.getUint8(0);\nlet pressUnits = 'psi'\nif (pressScaleIndex == 1) pressUnits = 'Bar';\nif (pressScaleIndex == 2) pressUnits = 'KPA';\n\n// Temperature Scale\nview1.setUint8(0,msg.payload.buffer[61]);\nlet tempScaleIndex = view1.getUint8(0);\nlet tempScaleUnits = 'F'\nif (tempScaleIndex == 1) tempScaleUnits = 'C';\nif (tempScaleIndex == 2) tempScaleUnits = 'K';\n\ntray.coolInTemp.unit = tempScaleUnits;\ntray.coolOutTemp.unit = tempScaleUnits;\ntray.oilTemp.unit = tempScaleUnits;\ntray.heliumTemp.unit = tempScaleUnits;\n\ntray.lowPress.unit = pressUnits;\ntray.lowPressAvg.unit = pressUnits;\ntray.highPress.unit = pressUnits;\ntray.highPressAvg.unit = pressUnits;\ntray.deltaPressAvg.unit = pressUnits;\n\n//Serial no \nview2.setUint8(0,msg.payload.buffer[63]);\nview2.setUint8(1,msg.payload.buffer[62]);\ntray.serialNo.value = view2.getUint16(0);\n\n// Model no\ntray.modelNo.value = getModel(msg.payload.buffer[64],msg.payload.buffer[65]);\n//Software version\ntray.softwareRev.value = Number(msg.payload.buffer[66].toString() + '.' + msg.payload.buffer[67].toString());\n\nreturn {topic:\"newData\", payload:tray};\n\nfunction getModel(highByte,lowByte)\n{\n    let strReturn = 'CPA';\n    switch(highByte)\n    {\n        case 1:\n            strReturn = strReturn + '08';\n            break;\n        case 2:\n            strReturn = strReturn + '09';\n            break;\n        case 3:\n            strReturn = strReturn + '10';\n            break;\n        case 4:\n            strReturn = strReturn + '11';\n            break;\n        case 5:\n            strReturn = strReturn + '12';\n            break;\n        default:\n            strReturn = strReturn + 'XX';\n            break;\n    }\n    switch(lowByte)\n    {\n        case 1:\n            strReturn = strReturn + 'A1';\n            break;\n        case 2:\n            strReturn = strReturn + '01';\n            break;\n        case 3:\n            strReturn = strReturn + '02';\n            break;\n        case 4:\n            strReturn = strReturn + '03';\n            break;\n        case 5:\n            strReturn = strReturn + 'H3';\n            break;\n        case 6:\n            strReturn = strReturn + 'I3';\n            break;\n        case 7:\n            strReturn = strReturn + '04';\n            break;\n        case 8:\n            strReturn = strReturn + 'H4';\n            break;\n        case 9:\n            strReturn = strReturn + '05';\n            break;\n        case 10:\n            strReturn = strReturn + 'H5';\n            break;\n        case 11:\n            strReturn = strReturn + 'I6';\n            break;\n        case 12:\n            strReturn = strReturn + '06';\n            break;\n        case 13:\n            strReturn = strReturn + '07';\n            break;\n         case 14:\n            strReturn = strReturn + 'H7';\n            break;\n        case 15:\n            strReturn = strReturn + 'I7';\n            break;\n        case 16:\n            strReturn = strReturn + '08';\n            break;\n        case 17:\n            strReturn = strReturn + '09';\n            break;\n        case 18:\n            strReturn = strReturn + '9C';\n            break;\n        case 19:\n            strReturn = strReturn + '10';\n            break;\n        case 20:\n            strReturn = strReturn + '1I';\n            break;\n        case 21:\n            strReturn = strReturn + '11';\n            break;\n        case 22:\n            strReturn = strReturn + '12';\n            break;\n        case 23:\n            strReturn = strReturn + '13';\n            break;\n        case 24:\n            strReturn = strReturn + '14';\n            break;\n        default:\n            strReturn = strReturn + 'YY';\n            break;\n   }\n   return strReturn;\n}\nfunction bitCheck(statusWord, bit)\n{\n    let bitty = false;\n    let maskShift = 32 - bit;\n    let andShift = bit - 1;\n\n    if ((((0x80000000 >>> maskShift) & statusWord) >>> andShift) > 0) bitty = true;\n    return bitty;\n}\nfunction setStatusBits(statusWord, warning)\n{\n    for (let ibit = 31; ibit > 0; --ibit )\n    {\n        let bitOn = bitCheck(statusWord, ibit);\n        if (bitOn)\n        {\n            switch (ibit)\n            {\n                case 31:\n                    if (warning)\n                    {\n                        tray.inverterCommOK.value = 1;\n                    }\n                    else\n                    {\n                        tray.inverterCommOK.value = 2;\n                    }\n                    break;\n                case 30:\n                    if (warning)\n                    {\n                        tray.driverCommOK.value = 1;\n                    }\n                    else\n                    {\n                        tray.driverCommOK.value = 2;\n                    }\n                    break;\n                case 29:\n                    if (warning)\n                    {\n                        tray.inverterOK.value = 1;\n                    }\n                    else\n                    {\n                        tray.inverterOK.value = 2;\n                    }\n                    break;\n                case 28:\n                    if (warning)\n                    {\n                        tray.motorCurrentOK.value = 1;\n                    }\n                    else\n                    {\n                        tray.motorCurrentOK.value = 2;\n                    }\n                    break;\n                case 27:\n                    if (warning)\n                    {\n                        tray.motorSensorOK.value = 1;\n                    }\n                    else\n                    {\n                        tray.motorSensorOK.value = 2;\n                    }\n                    break;\n                case 26:\n                    if (warning)\n                    {\n                        tray.lowPressSensorOK.value = 1;\n                    }\n                    else\n                    {\n                        tray.lowPressSensorOK.value = 2;\n                    }\n                    break;\n                case 25:\n                    if (warning)\n                    {\n                        tray.highPressSensorOK.value = 1;\n                    }\n                    else\n                    {\n                        tray.highPressSensorOK.value = 2;\n                    }\n                    break;\n                case 24:\n                    if (warning)\n                    {\n                        tray.oilSensorOK.value = 1;\n                    }\n                    else\n                    {\n                        tray.oilSensorOK.value = 2;\n                    }\n                    break;\n                case 23:\n                    if (warning)\n                    {\n                        tray.heliumSensorOK.value = 1;\n                    }\n                    else\n                    {\n                        tray.heliumSensorOK.value = 2;\n                    }\n                    break;\n                case 22:\n                    if (warning)\n                    {\n                        tray.coolOutSensorOK.value = 1;\n                    }\n                    else\n                    {\n                        tray.coolOutSensorOK.value = 2;\n                    }\n                    break;\n                case 21:\n                    if (warning)\n                    {\n                        tray.coolInSensorOK.value = 1;\n                    }\n                    else\n                    {\n                        tray.coolInSensorOK.value = 2;\n                    }\n                    break;\n                case 20:\n                    if (warning)\n                    {\n                        tray.motorStallOK.value = 1;\n                    }\n                    else\n                    {\n                        tray.motorStallOK.value = 2;\n                    }\n                    break;\n                case 19:\n                    if (warning)\n                    {\n                        tray.staticPressOK.value = -1;\n                    }\n                    else\n                    {\n                        tray.staticPressOK.value = -2;\n                    }\n                    break;\n                case 18:\n                    if (warning)\n                    {\n                        tray.staticPressOK.value = 1;\n                    }\n                    else\n                    {\n                        tray.staticPressOK.value = 2;\n                    }\n                    break;\n                case 17:\n                    if (warning)\n                    {\n                        tray.powerSupplyOK.value = 1;\n                    }\n                    else\n                    {\n                        tray.powerSupplyOK.value = 2;\n                    }\n                    break;\n                case 16:\n                    if (warning)\n                    {\n                        tray.threePhaseOK.value = 1;\n                    }\n                    else\n                    {\n                        tray.threePhaseOK.value = 2;\n                    }\n                    break;\n                case 15:\n                    if (warning)\n                    {\n                        tray.motorCurrentOK.value = -1;\n                    }\n                    else\n                    {\n                        tray.motorCurrentOK.value = -2;\n                    }\n                    break;\n                case 14:\n                    if (warning)\n                    {\n                        tray.deltaPressureOK.value = -1;\n                    }\n                    else\n                    {\n                        tray.deltaPressureOK.value = -2;\n                    }\n                    break;\n                case 13:\n                    if (warning)\n                    {\n                        tray.deltaPressureOK.value = 1;\n                    }\n                    else\n                    {\n                        tray.deltaPressureOK.value = 2;\n                    }\n                    break;\n                case 12:\n                    if (warning)\n                    {\n                        tray.highPressureOK.value = -1;\n                    }\n                    else\n                    {\n                        tray.highPressureOK.value = -2;\n                    }\n                    break;\n                case 11:\n                    if (warning)\n                    {\n                        tray.highPressureOK.value = 1;\n                    }\n                    else\n                    {\n                        tray.highPressureOK.value = 2;\n                    }\n                    break;\n                case 10:\n                    if (warning)\n                    {\n                        tray.lowPressureOK.value = -1;\n                    }\n                    else\n                    {\n                        tray.lowPressureOK.value = -2;\n                    }\n                    break;\n                case 9:\n                    if (warning)\n                    {\n                        tray.lowPressureOK.value = 1;\n                    }\n                    else\n                    {\n                        tray.lowPressureOK.value = 2;\n                    }\n                    break;\n                case 8:\n                    if (warning)\n                    {\n                        tray.heliumOK.value = -1;\n                    }\n                    else\n                    {\n                        tray.heliumOK.value = -2;\n                    }\n                    break;\n                case 7:\n                    if (warning)\n                    {\n                        tray.heliumOK.value = 1;\n                    }\n                    else\n                    {\n                        tray.heliumOK.value = 2;\n                    }\n                    break;\n                case 6:\n                    if (warning)\n                    {\n                        tray.oilOK.value = -1;\n                    }\n                    else\n                    {\n                        tray.oilOK.value = -2;\n                    }\n                    break;\n                case 5:\n                    if (warning)\n                    {\n                        tray.oilOK.value = 1;\n                    }\n                    else\n                    {\n                        tray.oilOK.value = 2;\n                    }\n                    break;\n                case 4:\n                    if (warning)\n                    {\n                        tray.coolantOutOK.value = -1;\n                    }\n                    else\n                    {\n                        tray.coolantOutOK.value = -2;\n                    }\n                    break;\n                case 3:\n                    if (warning)\n                    {\n                        tray.coolantOutOK.value = 1;\n                    }\n                    else\n                    {\n                        tray.coolantOutOK.value = 2;\n                    }\n                    break;\n                case 2:\n                    if (warning)\n                    {\n                        tray.coolantInOK.value = -1;\n                    }\n                    else\n                    {\n                        tray.coolantInOK.value = -2;\n                    }\n                    break;\n                case 1:\n                    if (warning)\n                    {\n                        tray.coolantInOK.value = 1;\n                    }\n                    else\n                    {\n                        tray.coolantInOK.value = 2;\n                    }\n                    break;\n                default:\n                    break;\n            }\n        }\n    }\n}\nfunction rounder(toBeRounded, places)\n{\n    let roundy = [1, 10, 100, 1000, 10000, 100000, 1000000, 10000000, 100000000];\n    return Math.round(roundy[places] * toBeRounded) / roundy[places];\n}",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 780,
+        "y": 1040,
+        "wires": [
+            [
+                "cd5aaf29fd0c0de2"
+            ]
+        ]
+    },
+    {
+        "id": "99fbe8135d0ce161",
+        "type": "function",
+        "z": "281e0a510310e9c6",
+        "name": "Readings Alarm Scan",
+        "func": "let tray = msg.payload;\nlet alarmFlagReading = scalarAlarmScan(tray, 'reading');\nlet alarmFlagSetting = scalarAlarmScan(tray, 'setting');\n\nlet newMsg = null;\nswitch( tray.trayControl.value)\n{\n    case 0:\n        newMsg = {topic: 'alarmScanCompleted', payload: tray};\n        break;\n    case -1:\n        tray.trayControl.value = 1;\n        newMsg = {topic: 'alarmScanCompleted', payload: tray};\n        break;\n    default:\n        break;\n}\nreturn newMsg;\n\nfunction getActionArray(tray, type, actionType)\n{\n    var actionArray = [];\n    var keys = Object.keys(tray);\n    for (var ii = 0; ii < keys.length; ++ii)\n    {\n        if (tray[keys[ii]].hasOwnProperty('type'))\n        {\n            if (tray[keys[ii]].type == type)\n            {\n                if (tray[keys[ii]].action == actionType)\n                {\n                    actionArray.push(tray[keys[ii]]);\n                }\n            }\n        }\n    }\n    return actionArray;\n}\nfunction scalarAlarmScan(tray, actionType)\n{\n    var alarmFlag = false;\n    var actionArray = getActionArray(tray, 'scalar', actionType);\n    if (actionArray.length > 0)\n    {\n        for (var ii = 0; ii < actionArray.length; ++ii)\n        {\n            let oldAlarmValue = actionArray[ii].alarm.value;\n            actionArray[ii].alarm.value = 0;\n            if (!isNaN(actionArray[ii].value))\n            {\n                if (actionArray[ii].value <= actionArray[ii].alarm.limits.low)  actionArray[ii].alarm.value = 1;\n                if (actionArray[ii].value <= actionArray[ii].alarm.limits.lolo) actionArray[ii].alarm.value = 3;\n                if (actionArray[ii].value >= actionArray[ii].alarm.limits.high) actionArray[ii].alarm.value = 2;\n                if (actionArray[ii].value >= actionArray[ii].alarm.limits.hihi) actionArray[ii].alarm.value = 4;\n                if (actionArray[ii].alarm.value != oldAlarmValue) alarmFlag = true;\n            }\n        }\n    }\n    return alarmFlag;\n}\n",
+        "outputs": 1,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "// Code added here will be run once\n// whenever the node is started.\ncontext.set('lastAlarm', -1);",
+        "finalize": "",
+        "libs": [],
+        "x": 1200,
+        "y": 1040,
+        "wires": [
+            [
+                "f5d0568e288098ed"
+            ]
+        ]
+    },
+    {
+        "id": "cd5aaf29fd0c0de2",
+        "type": "function",
+        "z": "281e0a510310e9c6",
+        "name": "Permit Check",
+        "func": "let tray = msg.payload;\nif (tray.hasOwnProperty('permit')) tray.permit.value = 1;\nlet alarmFlagReading = scalarAlarmScan(tray, 'reading');\nlet alarmFlagSetting = scalarAlarmScan(tray, 'setting');\nif (tray.hasOwnProperty('permit'))\n{\n    tray.permit.value = 1;\n    if (alarmFlagReading || alarmFlagSetting) tray.permit.value = 0;\n}\n\nreturn msg;\n\nfunction getActionArray(tray, type, actionType)\n{\n    var actionArray = [];\n    var keys = Object.keys(tray);\n    for (var ii = 0; ii < keys.length; ++ii)\n    {\n        if (tray[keys[ii]].hasOwnProperty('type'))\n        {\n            if (tray[keys[ii]].type == type)\n            {\n                if (tray[keys[ii]].action == actionType)\n                {\n                    actionArray.push(tray[keys[ii]]);\n                }\n            }\n        }\n    }\n    return actionArray;\n}\nfunction scalarAlarmScan(tray, actionType)\n{\n    var alarmFlag = false;\n    var actionArray = getActionArray(tray, 'scalar', actionType);\n    if (actionArray.length > 0)\n    {\n        for (var ii = 0; ii < actionArray.length; ++ii)\n        {\n            let oldAlarmValue = actionArray[ii].alarm.value;\n            actionArray[ii].alarm.value = 0;\n            if (!isNaN(actionArray[ii].value))\n            {\n                if (actionArray[ii].value <= actionArray[ii].alarm.limits.low)  actionArray[ii].alarm.value = 1;\n                if (actionArray[ii].value <= actionArray[ii].alarm.limits.lolo) actionArray[ii].alarm.value = 3;\n                if (actionArray[ii].value >= actionArray[ii].alarm.limits.high) actionArray[ii].alarm.value = 2;\n                if (actionArray[ii].value >= actionArray[ii].alarm.limits.hihi) actionArray[ii].alarm.value = 4;\n                if (actionArray[ii].alarm.value > 2) alarmFlag = true;\n            }\n        }\n    }\n    return alarmFlag;\n}\n",
+        "outputs": 1,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "// Code added here will be run once\n// whenever the node is started.\ncontext.set('lastAlarm', -1);",
+        "finalize": "",
+        "libs": [],
+        "x": 980,
+        "y": 1040,
+        "wires": [
+            [
+                "99fbe8135d0ce161"
+            ]
+        ]
+    },
+    {
+        "id": "ae58d87596068f05",
+        "type": "function",
+        "z": "281e0a510310e9c6",
+        "name": "Modbus read command",
+        "func": "let inputRegisterMsg   = {topic:\"readInputRegisters\",   payload:{fc:4, unitid:1, address:0, quantity:35}}\nlet holdingRegisterMsg = {topic:\"readHoldingRegisters\", payload:{fc:3, unitid:1, address:0, quantity:2}}\nreturn inputRegisterMsg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 350,
+        "y": 1040,
+        "wires": [
+            [
+                "793c3898f3118195"
+            ]
+        ]
+    },
+    {
+        "id": "50a8bbba9eec6420",
+        "type": "inject",
+        "z": "281e0a510310e9c6",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "2",
+        "crontab": "",
+        "once": true,
+        "onceDelay": "20",
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 150,
+        "y": 1040,
+        "wires": [
+            [
+                "ae58d87596068f05"
+            ]
+        ]
+    },
+    {
+        "id": "eb672c119c6dd8d4",
+        "type": "modbus-flex-getter",
+        "z": "281e0a510310e9c6",
+        "name": "Read Modbus ",
+        "showStatusActivities": true,
+        "showErrors": true,
+        "showWarnings": true,
+        "logIOActivities": false,
+        "server": "4a8c3caa0ff9b87d",
+        "useIOFile": false,
+        "ioFile": "",
+        "useIOForPayload": false,
+        "emptyMsgOnFail": false,
+        "keepMsgProperties": false,
+        "delayOnStart": false,
+        "startDelayTime": "",
+        "x": 680,
+        "y": 1160,
+        "wires": [
+            [],
+            [
+                "69cede98b09ddb6a"
+            ]
+        ]
+    },
+    {
+        "id": "fb29a271d92e3fe6",
+        "type": "function",
+        "z": "281e0a510310e9c6",
+        "name": "Modbus holdingRegisterMsg read command",
+        "func": "let holdingRegisterMsg = {topic:\"readHoldingRegisters\", payload:{fc:3, unitid:1, address:0, quantity:5}}\nreturn holdingRegisterMsg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 390,
+        "y": 1160,
+        "wires": [
+            [
+                "eb672c119c6dd8d4"
+            ]
+        ]
+    },
+    {
+        "id": "3282fb2092ef242b",
+        "type": "inject",
+        "z": "281e0a510310e9c6",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 140,
+        "y": 1160,
+        "wires": [
+            [
+                "fb29a271d92e3fe6"
+            ]
+        ]
+    },
+    {
+        "id": "69cede98b09ddb6a",
+        "type": "debug",
+        "z": "281e0a510310e9c6",
+        "name": "debug 2",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 880,
+        "y": 1160,
+        "wires": []
+    },
+    {
+        "id": "58cbc8e2ea3051fb",
+        "type": "function",
+        "z": "281e0a510310e9c6",
+        "name": "en/disable comp state 0",
+        "func": "let tray = flow.get('tray');\ntray.enableComp.value = 0;\ntray.disableComp.value = 0;\nmsg.payload = tray;\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1470,
+        "y": 200,
+        "wires": [
+            [
+                "f75b9887786b11c4"
+            ]
+        ]
+    },
+    {
+        "id": "87c770b88cf6272d",
+        "type": "delay",
+        "z": "281e0a510310e9c6",
+        "name": "",
+        "pauseType": "delay",
+        "timeout": "3",
+        "timeoutUnits": "seconds",
+        "rate": "1",
+        "nbRateUnits": "1",
+        "rateUnits": "second",
+        "randomFirst": "1",
+        "randomLast": "5",
+        "randomUnits": "seconds",
+        "drop": false,
+        "allowrate": false,
+        "outputs": 1,
+        "x": 1260,
+        "y": 200,
+        "wires": [
+            [
+                "58cbc8e2ea3051fb"
+            ]
+        ]
+    },
+    {
+        "id": "b66aca1b7039e50d",
+        "type": "debug",
+        "z": "281e0a510310e9c6",
+        "name": "debug 3",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1260,
+        "y": 240,
+        "wires": []
     }
 ]

@@ -1,0 +1,25 @@
+version: "3.7"
+services:
+  cryomech-cpa1114-tray:
+    image: blinkylite/cryomech-cpa1114-tray:${DOCKER_TAG}
+    restart: unless-stopped
+    container_name: cryomech-cpa1114-tray-${TRAYNAME}
+#    ports:
+#      - "1880:1880"
+    environment:
+      - BOX=${BOX}
+      - TRAYTYPE=${TRAYTYPE}
+      - TRAYNAME=${TRAYNAME}
+      - MQTTCLIENTID=${TRAYTYPE}-${TRAYNAME}
+      - MQTTSERVERIP=blinky-mqtt
+      - MQTTUSERNAME=${BOX}
+      - MQTTPASSWORD=${BLINKYPASSWORD}
+      - MQTTPORT=1883
+      - MODBUSIP=${MODBUSIP}
+      - MODBUSPORT=${MODBUSPORT}
+      - NODEREDPORT=1880
+      - ENABLE_NODERED_EDITOR=0
+networks:
+  default:
+    name: tunnel
+    external: true
